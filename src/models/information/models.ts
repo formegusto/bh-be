@@ -1,12 +1,5 @@
-import { access } from "fs";
-import {
-  Association,
-  DataTypes,
-  Model,
-  ModelAttributes,
-  Sequelize,
-} from "sequelize/dist";
-import SensorReportTimeModel from "../sensorReportTime";
+import { DataTypes, Model, ModelAttributes, Sequelize } from "sequelize/dist";
+import { encryptProcess } from "../../utils/ARIAUtils";
 import {
   InformationAttributes,
   InformationCreationAttributes,
@@ -23,6 +16,10 @@ const informationAttributes: ModelAttributes = {
   value: {
     type: DataTypes.STRING,
     allowNull: false,
+    set(val: any) {
+      const cipherValue = encryptProcess(val.toString());
+      this.setDataValue("value", cipherValue);
+    },
   },
   sensorReportId: {
     type: DataTypes.INTEGER.UNSIGNED,
@@ -46,18 +43,19 @@ class InformationModel
       sequelize,
       modelName,
       tableName: modelName,
+      timestamps: false,
     });
   }
 }
 
-class IsStayModel extends InformationModel {}
-class ResidentCountModel extends InformationModel {}
-class TemperatureModel extends InformationModel {}
-class HumidityModel extends InformationModel {}
-class LuxModel extends InformationModel {}
-class SkinTemperatureModel extends InformationModel {}
-class ResidentDistributionModel extends InformationModel {}
-class SatisfactionModel extends InformationModel {}
+export class IsStayModel extends InformationModel {}
+export class ResidentCountModel extends InformationModel {}
+export class TemperatureModel extends InformationModel {}
+export class HumidityModel extends InformationModel {}
+export class LuxModel extends InformationModel {}
+export class SkinTemperatureModel extends InformationModel {}
+export class ResidentDistributionModel extends InformationModel {}
+export class SatisfactionModel extends InformationModel {}
 
 export const informationModels = [
   IsStayModel,

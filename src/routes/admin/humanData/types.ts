@@ -1,8 +1,10 @@
 export type RequestBuilding = {
+  [key: string]: any;
   name: string;
 };
 
 export type RequestSensor = {
+  [key: string]: any;
   name: string;
 };
 
@@ -11,6 +13,7 @@ export type RequestInformation = {
 };
 
 export type HumanDataBody = {
+  [key: string]: RequestBuilding | RequestSensor | RequestInformation;
   building: RequestBuilding;
   sensor: RequestSensor;
   information: RequestInformation;

@@ -1,10 +1,12 @@
 import {
   Association,
   DataTypes,
+  HasManyCreateAssociationMixin,
   Model,
   ModelAttributes,
   Sequelize,
 } from "sequelize/dist";
+import { encryptProcess } from "../../utils/ARIAUtils";
 import BuildingModel from "../building";
 import SensorReportTimeModel from "../sensorReportTime";
 import { SensonCreationAttributes, SensorAttributes } from "./types";
@@ -18,6 +20,10 @@ const sensorAttributes: ModelAttributes = {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
+    set(val: any) {
+      const cipherValue = encryptProcess(val.toString());
+      this.setDataValue("name", cipherValue);
+    },
   },
   buildingId: {
     type: DataTypes.INTEGER.UNSIGNED,
@@ -38,6 +44,9 @@ class SensorModel
 
   public readonly building?: BuildingModel;
   public readonly timeReports?: SensorReportTimeModel[];
+
+  public readonly createTimeReport!: HasManyCreateAssociationMixin<SensorReportTimeModel>;
+
   public static associations: {
     building: Association<SensorModel, BuildingModel>;
     timeReports: Association<SensorModel, SensorReportTimeModel>;
@@ -47,6 +56,14 @@ class SensorModel
     SensorModel.init(sensorAttributes, {
       sequelize,
       modelName: "Sensor",
+      hooks: {
+        beforeFind: ({ where }) => {
+          const plainText = (where as any)["name"];
+          const cipherText = encryptProcess(plainText);
+
+          (where as any)["name"] = cipherText;
+        },
+      },
     });
   }
 

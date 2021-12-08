@@ -1,11 +1,24 @@
 import {
   Association,
   DataTypes,
+  HasManyCreateAssociationMixin,
   Model,
   ModelAttributes,
   Sequelize,
 } from "sequelize/dist";
-import { informationModels, informationNames } from "../information/models";
+import InformationModel from "../information";
+import {
+  HumidityModel,
+  informationModels,
+  informationNames,
+  IsStayModel,
+  LuxModel,
+  ResidentCountModel,
+  ResidentDistributionModel,
+  SatisfactionModel,
+  SkinTemperatureModel,
+  TemperatureModel,
+} from "../information/models";
 import SensorModel from "../sensor";
 import {
   SensorReportTimeAttributes,
@@ -32,6 +45,7 @@ class SensorReportTimeModel
   extends Model<SensorReportTimeAttributes, SensorReportTimeCreationAttributes>
   implements SensorReportTimeAttributes
 {
+  [key: string]: any;
   public readonly id!: number;
   public time!: Date;
   public readonly sensorId!: number;
@@ -39,9 +53,38 @@ class SensorReportTimeModel
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
+  public readonly createIsStay!: HasManyCreateAssociationMixin<IsStayModel>;
+  public readonly createResidentCount!: HasManyCreateAssociationMixin<ResidentCountModel>;
+  public readonly createTemperature!: HasManyCreateAssociationMixin<TemperatureModel>;
+  public readonly createHumidity!: HasManyCreateAssociationMixin<HumidityModel>;
+  public readonly createLux!: HasManyCreateAssociationMixin<LuxModel>;
+  public readonly createSkinTemperature!: HasManyCreateAssociationMixin<SkinTemperatureModel>;
+  public readonly createResidentDistribution!: HasManyCreateAssociationMixin<ResidentDistributionModel>;
+  public readonly createSatisfaciton!: HasManyCreateAssociationMixin<SatisfactionModel>;
+
   public readonly sensor?: SensorModel;
+  public readonly isStay?: IsStayModel;
+  public readonly residentCount?: ResidentCountModel;
+  public readonly temperature?: TemperatureModel;
+  public readonly humidity?: HumidityModel;
+  public readonly lux?: LuxModel;
+  public readonly skinTemperature?: SkinTemperatureModel;
+  public readonly residentDistribution?: ResidentDistributionModel;
+  public readonly satisfaction?: SatisfactionModel;
+
   public static associations: {
     sensor: Association<SensorReportTimeModel, SensorModel>;
+    isStay: Association<SensorReportTimeModel, IsStayModel>;
+    residentCount: Association<SensorReportTimeModel, ResidentCountModel>;
+    temperature: Association<SensorReportTimeModel, TemperatureModel>;
+    humidity: Association<SensorReportTimeModel, HumidityModel>;
+    lux: Association<SensorReportTimeModel, LuxModel>;
+    skinTemperature: Association<SensorReportTimeModel, SkinTemperatureModel>;
+    residentDistribution: Association<
+      SensorReportTimeModel,
+      ResidentDistributionModel
+    >;
+    satisfaction: Association<SensorReportTimeModel, SatisfactionModel>;
   };
 
   public static initConfig(sequelize: Sequelize) {
@@ -62,7 +105,7 @@ class SensorReportTimeModel
         foreignKey: "sensorReportId",
         as: {
           singular: informationNames[idx],
-          plural: `${informationNames[idx]}s`,
+          plural: `${informationNames[idx]}`,
         },
       });
     });

@@ -3,8 +3,11 @@ import {
   DataTypes,
   Model,
   ModelAttributes,
+  Options,
   Sequelize,
 } from "sequelize/dist";
+import { RequestBuilding } from "../../routes/admin/humanData/types";
+import { encryptProcess } from "../../utils/ARIAUtils";
 import SensorModel from "../sensor";
 import { BuildingAttributes, BuildingCreationAttributes } from "./types";
 
@@ -18,6 +21,10 @@ const buildingAttributes: ModelAttributes = {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    set(val: any) {
+      const cipherValue = encryptProcess(val.toString());
+      this.setDataValue("name", cipherValue);
+    },
   },
 };
 
@@ -32,6 +39,7 @@ class BuildingModel
   public readonly updatedAt!: Date;
 
   public readonly sensors?: SensorModel;
+
   public static associations: {
     sensors: Association<BuildingModel, SensorModel>;
   };
@@ -40,6 +48,14 @@ class BuildingModel
     BuildingModel.init(buildingAttributes, {
       sequelize,
       modelName: "Building",
+      hooks: {
+        beforeFind: ({ where }) => {
+          const plainText = (where as any)["name"];
+          const cipherText = encryptProcess(plainText);
+
+          (where as any)["name"] = cipherText;
+        },
+      },
     });
   }
 

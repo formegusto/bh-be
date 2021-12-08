@@ -1,4 +1,5 @@
-import { Model, Optional } from "sequelize/dist";
+import { HasManyCreateAssociationMixin, Model, Optional } from "sequelize/dist";
+import InformationModel from ".";
 
 export type InformationAttributes = {
   readonly id: number;
@@ -28,5 +29,9 @@ export type InformationName =
   | "satisfaction";
 
 export type InformationMap = {
-  [key: string]: Model;
+  [key: string]: InformationModel;
+};
+
+export type InformationCreateMap = {
+  [key: string]: HasManyCreateAssociationMixin<any>;
 };
