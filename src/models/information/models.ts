@@ -11,6 +11,7 @@ import {
   InformationAttributes,
   InformationCreationAttributes,
   InformationMap,
+  InformationName,
 } from "./types";
 
 const informationAttributes: ModelAttributes = {
@@ -53,7 +54,7 @@ class IsStayModel extends InformationModel {}
 class ResidentCountModel extends InformationModel {}
 class TemperatureModel extends InformationModel {}
 class HumidityModel extends InformationModel {}
-class IlluminanceModel extends InformationModel {}
+class LuxModel extends InformationModel {}
 class SkinTemperatureModel extends InformationModel {}
 class ResidentDistributionModel extends InformationModel {}
 class SatisfactionModel extends InformationModel {}
@@ -63,17 +64,17 @@ export const informationModels = [
   ResidentCountModel,
   TemperatureModel,
   HumidityModel,
-  IlluminanceModel,
+  LuxModel,
   SkinTemperatureModel,
   ResidentDistributionModel,
   SatisfactionModel,
 ];
-export const informationNames = [
+export const informationNames: InformationName[] = [
   "IsStay",
   "ResidentCount",
   "Temperature",
   "Humidity",
-  "Illuminance",
+  "Lux",
   "SkinTemperature",
   "ResidentDistribution",
   "Satisfaction",
@@ -82,7 +83,8 @@ export const informationNames = [
 export const informationMap: InformationMap = informationModels.reduce(
   (acc, cur, idx) => ({
     ...acc,
-    [informationNames[idx]]: cur,
+    [informationNames[idx][0].toLowerCase() + informationNames[idx].slice(1)]:
+      cur,
   }),
   {}
 );
