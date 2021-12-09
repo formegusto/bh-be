@@ -48,6 +48,8 @@ class BuildingModel
     BuildingModel.init(buildingAttributes, {
       sequelize,
       modelName: "Building",
+      charset: "utf8mb4",
+      collate: "utf8mb4_general_ci",
       hooks: {
         beforeFind: ({ where }) => {
           const plainText = (where as any)["name"];

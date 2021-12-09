@@ -56,6 +56,8 @@ class SensorModel
     SensorModel.init(sensorAttributes, {
       sequelize,
       modelName: "Sensor",
+      charset: "utf8mb4",
+      collate: "utf8mb4_general_ci",
       hooks: {
         beforeFind: ({ where }) => {
           const plainText = (where as any)["name"];
