@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "start": "tsc && node dist/app",
-    "start-nodemon": "nodemon --watch src -e ts --exec 'tsc && node dist/app'"
+    "start-nodemon": "nodemon --watch src -e ts --exec 'tsc && node dist/app'",
+    "start-server": "tsc && pm2 start dist/app"
   },
   "devDependencies": {
     "@types/morgan": "^1.9.3",
