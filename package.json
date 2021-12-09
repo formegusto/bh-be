@@ -8,7 +8,7 @@
   "scripts": {
     "start": "tsc && node dist/app",
     "start-nodemon": "nodemon --watch src -e ts --exec 'tsc && node dist/app'",
-    "start-server": "tsc && pm2 start dist/app"
+    "start-server": "tsc && pm2 start dist/app.js"
   },
   "devDependencies": {
     "@types/morgan": "^1.9.3",
