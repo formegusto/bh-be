@@ -1,7 +1,7 @@
 {
   "name": "bh-be",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "repository": "https://github.com/formegusto/bh-be.git",
   "author": "formegusto <formegusto@gmail.com>",
   "license": "MIT",
