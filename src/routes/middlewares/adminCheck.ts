@@ -7,7 +7,7 @@ export default function adminCheck(
 ) {
   const key = req.headers.authorization;
 
-  if (key) {
+  if (!key) {
     return res.status(401).json({
       status: false,
       error: {
