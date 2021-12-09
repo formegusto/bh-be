@@ -50,14 +50,14 @@ class InformationModel
   }
 }
 
-export class IsStayModel extends InformationModel {}
-export class ResidentCountModel extends InformationModel {}
-export class TemperatureModel extends InformationModel {}
-export class HumidityModel extends InformationModel {}
-export class LuxModel extends InformationModel {}
-export class SkinTemperatureModel extends InformationModel {}
-export class ResidentDistributionModel extends InformationModel {}
-export class SatisfactionModel extends InformationModel {}
+export class IsStayModel extends InformationModel {} // 재실유무
+export class ResidentCountModel extends InformationModel {} // 거주자 수
+export class TemperatureModel extends InformationModel {} // 온도
+export class HumidityModel extends InformationModel {} // 습도
+export class LuxModel extends InformationModel {} // 조도
+export class SkinTemperatureModel extends InformationModel {} // 피부온도
+export class ResidentDistributionModel extends InformationModel {} // 거주자 분포
+export class SatisfactionModel extends InformationModel {} // 만족도
 
 export const informationModels = [
   IsStayModel,

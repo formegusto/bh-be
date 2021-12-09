@@ -1,35 +1,26 @@
 import { Request, Response, Router } from "express";
-import { Model } from "sequelize/dist";
 import BuildingModel from "../../../models/building";
-import InformationModel from "../../../models/information";
-import {
-  informationMap,
-  informationNames,
-} from "../../../models/information/models";
 import SensorModel from "../../../models/sensor";
-import ARIAEngine from "../../../utils/ARIAEngine";
-import {
-  bytesToString,
-  decryptProcess,
-  encryptProcess,
-  stringToByte,
-} from "../../../utils/ARIAUtils";
+import { requestBodyDecrypt } from "../../../utils/ARIAUtils";
 import { HumanDataBody } from "./types";
 
 const HumanDataRoutes = Router();
 
+function bodyDecrypt(encryptBody: HumanDataBody) {}
+
 HumanDataRoutes.post("/", async (req: Request, res: Response) => {
   try {
     const body = <HumanDataBody>req.body;
+    // console.log(body);
+    // requestBodyDecrypt(body);
 
     console.log(body);
-
     const [building, buildingResult] = await BuildingModel.findCreateFind({
       where: {
         ...body.building,
       },
     });
-    console.log(building);
+    // console.log(building);
 
     const [sensor, sensorResult] = await SensorModel.findCreateFind({
       where: {
@@ -37,7 +28,7 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
         buildingId: building.id,
       },
     });
-    console.log(sensor);
+    // console.log(sensor);
 
     const report = await sensor.createTimeReport({
       time: new Date(),
@@ -78,6 +69,13 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
       },
     });
   }
+});
+
+HumanDataRoutes.get("/", (req: Request, res: Response) => {
+  return res.status(200).json({
+    status: true,
+    data: {},
+  });
 });
 
 export default HumanDataRoutes;

@@ -4,6 +4,7 @@ import sequelize from "./models";
 import Routes from "./routes";
 import ARIAEngine from "./utils/ARIAEngine";
 import { stringToByte } from "./utils/ARIAUtils";
+import cors from "cors";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ sequelize
 const PORT = process.env.PORT || 80;
 const app: express.Application = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.use(Routes);

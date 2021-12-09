@@ -81,3 +81,50 @@ export function decryptProcess(cipherText: string): string {
   const decodedText = bytesToString(decodedByte, "unicode");
   return decodedText;
 }
+
+export function requestDecrypt(cipherBuffer: any): string {
+  const COMMUNITY_KEY = process.env.COMMUNITY_KEY!;
+
+  const aria = new ARIAEngine(256);
+  const mk = stringToByte(COMMUNITY_KEY, "ascii");
+  aria.setKey(mk);
+  aria.setupRoundKeys();
+
+  const dt: Uint8Array = new Uint8Array(Object.keys(cipherBuffer).length);
+  Object.keys(cipherBuffer).forEach((_, i) => {
+    dt.set([cipherBuffer[_]], i);
+  });
+  const dt16: Uint8Array[] = [];
+  dt.forEach((d, i) => {
+    if ((i + 1) % 16 === 0) {
+      dt16.push(dt.slice(Math.floor(i / 16) * 16, i + 1));
+    }
+  });
+
+  let decodedByte: Uint8Array = new Uint8Array();
+  dt16.forEach((d) => {
+    const c: Uint8Array = new Uint8Array(16);
+    aria.decrypt(d, 0, c, 0);
+
+    const merge = new Uint8Array(decodedByte.length + c.length);
+
+    merge.set(decodedByte);
+    merge.set(c, decodedByte.length);
+
+    decodedByte = merge;
+  });
+
+  const decodedText = bytesToString(decodedByte, "unicode");
+
+  return decodedText;
+}
+
+export function requestBodyDecrypt(encryptBody: any) {
+  Object.keys(encryptBody).forEach((_, i) => {
+    if (encryptBody[_][0]) {
+      encryptBody[_] = requestDecrypt(encryptBody[_]);
+    } else {
+      requestBodyDecrypt(encryptBody[_]);
+    }
+  });
+}
