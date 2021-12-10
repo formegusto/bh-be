@@ -96,7 +96,7 @@ class SensorReportTimeModel
     });
   }
 
-  public static associationConfig() {
+  public static associationsConfig() {
     SensorReportTimeModel.belongsTo(SensorModel, {
       targetKey: "id",
       foreignKey: "sensorId",

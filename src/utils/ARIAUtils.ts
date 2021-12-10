@@ -66,7 +66,7 @@ export function decryptProcess(cipherText: string): string {
   });
 
   let decodedByte: Uint8Array = new Uint8Array();
-  dt16.forEach((d) => {
+  dt16.forEach((d, idx) => {
     const c: Uint8Array = new Uint8Array(16);
     aria.decrypt(d, 0, c, 0);
 
@@ -77,6 +77,11 @@ export function decryptProcess(cipherText: string): string {
 
     decodedByte = merge;
   });
+
+  const isExistZero = decodedByte.indexOf(0);
+  if (isExistZero > -1) {
+    decodedByte = decodedByte.slice(0, isExistZero);
+  }
 
   const decodedText = bytesToString(decodedByte, "unicode");
   return decodedText;

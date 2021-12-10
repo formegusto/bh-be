@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 import { Sequelize } from "sequelize/dist";
+import ApiApplicationModel from "./apiApplication";
 import BuildingModel from "./building";
 import InformationModel from "./information";
 import SensorModel from "./sensor";
 import SensorReportTimeModel from "./sensorReportTime";
+import UserModel from "./user";
 
 dotenv.config();
 
@@ -19,6 +21,7 @@ const sequelize = new Sequelize(database!, username!, password!, {
   dialect: "mysql",
 });
 
+// Data Part
 BuildingModel.initConfig(sequelize);
 SensorModel.initConfig(sequelize);
 SensorReportTimeModel.initConfig(sequelize);
@@ -26,6 +29,12 @@ InformationModel.initConfig(sequelize);
 
 BuildingModel.associationsConfig();
 SensorModel.associationsConfig();
-SensorReportTimeModel.associationConfig();
+SensorReportTimeModel.associationsConfig();
+
+// User Service Part
+UserModel.initConfig(sequelize);
+ApiApplicationModel.initConfig(sequelize);
+
+ApiApplicationModel.associationsConfig();
 
 export default sequelize;
