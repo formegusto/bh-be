@@ -7,7 +7,8 @@ import {
   Sequelize,
 } from "sequelize/dist";
 import { RequestBuilding } from "../../routes/admin/humanData/types";
-import { encryptProcess } from "../../utils/ARIAUtils";
+import { decryptProcess, encryptProcess } from "../../utils/ARIAUtils";
+import { ariaAfterOutDB } from "../../utils/indbEncrypt";
 import SensorModel from "../sensor";
 import { BuildingAttributes, BuildingCreationAttributes } from "./types";
 
@@ -24,6 +25,9 @@ const buildingAttributes: ModelAttributes = {
     set(val: any) {
       const cipherValue = encryptProcess(val.toString());
       this.setDataValue("name", cipherValue);
+    },
+    get() {
+      return ariaAfterOutDB(this, "name");
     },
   },
 };
@@ -52,10 +56,12 @@ class BuildingModel
       collate: "utf8mb4_general_ci",
       hooks: {
         beforeFind: ({ where }) => {
-          const plainText = (where as any)["name"];
-          const cipherText = encryptProcess(plainText);
+          if (where && (where as any)["name"]) {
+            const plainText = (where as any)["name"];
+            const cipherText = encryptProcess(plainText);
 
-          (where as any)["name"] = cipherText;
+            (where as any)["name"] = cipherText;
+          }
         },
       },
     });

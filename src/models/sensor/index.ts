@@ -7,6 +7,7 @@ import {
   Sequelize,
 } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
+import { ariaAfterOutDB } from "../../utils/indbEncrypt";
 import BuildingModel from "../building";
 import SensorReportTimeModel from "../sensorReportTime";
 import { SensonCreationAttributes, SensorAttributes } from "./types";
@@ -23,6 +24,9 @@ const sensorAttributes: ModelAttributes = {
     set(val: any) {
       const cipherValue = encryptProcess(val.toString());
       this.setDataValue("name", cipherValue);
+    },
+    get() {
+      return ariaAfterOutDB(this, "name");
     },
   },
   buildingId: {
@@ -60,10 +64,12 @@ class SensorModel
       collate: "utf8mb4_general_ci",
       hooks: {
         beforeFind: ({ where }) => {
-          const plainText = (where as any)["name"];
-          const cipherText = encryptProcess(plainText);
+          if (where && (where as any)["name"]) {
+            const plainText = (where as any)["name"];
+            const cipherText = encryptProcess(plainText);
 
-          (where as any)["name"] = cipherText;
+            (where as any)["name"] = cipherText;
+          }
         },
       },
     });

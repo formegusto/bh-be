@@ -5,6 +5,7 @@ import {
   ModelAttributes,
   Sequelize,
 } from "sequelize/dist";
+import { encryptProcess } from "../../utils/ARIAUtils";
 import { ariaAfterOutDB, ariaBeforeInDB } from "../../utils/indbEncrypt";
 import UserModel from "../user";
 import {
@@ -13,6 +14,7 @@ import {
   ApiApplicationCreationAttributes,
 } from "./types";
 
+const ariaAttributes = ["purpose", "apiKey", "decryptKey"];
 const apiApplicationAttributes: ModelAttributes = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
@@ -95,6 +97,17 @@ class ApiApplicationModel
     this.init(apiApplicationAttributes, {
       sequelize,
       modelName: "ApiApplication",
+      hooks: {
+        beforeFind: ({ where }) => {
+          Object.keys(where as any).forEach((key) => {
+            if (ariaAttributes.includes(key)) {
+              const plainText = (where as any)[key];
+              const cipherText = encryptProcess(plainText);
+              (where as any)[key] = cipherText;
+            }
+          });
+        },
+      },
     });
   }
 }
