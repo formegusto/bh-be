@@ -8,3 +8,8 @@ export type RequestUserBody = {
   nickname: string;
   role: UserRole;
 };
+
+export type DecodedUser = {
+  username: string;
+  role: UserRole;
+};

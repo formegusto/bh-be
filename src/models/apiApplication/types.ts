@@ -7,6 +7,7 @@ export enum ApiApplicationStatus {
 
 export type ApiApplicationAttributes = {
   readonly id: number;
+  purpose: string;
   apiKey: string;
   decryptKey: string;
   status: ApiApplicationStatus;

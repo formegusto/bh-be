@@ -18,6 +18,10 @@ const apiApplicationAttributes: ModelAttributes = {
     primaryKey: true,
     autoIncrement: true,
   },
+  purpose: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   apiKey: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -47,6 +51,7 @@ class ApiApplicationModel
   implements ApiApplicationAttributes
 {
   public readonly id!: number;
+  public purpose!: string;
   public apiKey!: string;
   public decryptKey!: string;
   public status!: ApiApplicationStatus;
