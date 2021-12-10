@@ -5,6 +5,7 @@ import {
   ModelAttributes,
   Sequelize,
 } from "sequelize/dist";
+import { ariaAfterOutDB, ariaBeforeInDB } from "../../utils/indbEncrypt";
 import UserModel from "../user";
 import {
   ApiApplicationStatus,
@@ -21,16 +22,34 @@ const apiApplicationAttributes: ModelAttributes = {
   purpose: {
     type: DataTypes.STRING,
     allowNull: false,
+    set(val: any) {
+      ariaBeforeInDB(this, val, "purpose");
+    },
+    get() {
+      return ariaAfterOutDB(this, "purpose");
+    },
   },
   apiKey: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    set(val: any) {
+      ariaBeforeInDB(this, val, "apiKey");
+    },
+    get() {
+      return ariaAfterOutDB(this, "apiKey");
+    },
   },
   decryptKey: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    set(val: any) {
+      ariaBeforeInDB(this, val, "decryptKey");
+    },
+    get() {
+      return ariaAfterOutDB(this, "decryptKey");
+    },
   },
   status: {
     type: DataTypes.ENUM(

@@ -10,7 +10,7 @@ export type ApiApplicationAttributes = {
   purpose: string;
   apiKey: string;
   decryptKey: string;
-  status: ApiApplicationStatus;
+  status?: ApiApplicationStatus;
   readonly userId: number;
 };
 

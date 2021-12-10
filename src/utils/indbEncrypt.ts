@@ -18,7 +18,7 @@ export function ariaBeforeInDB(model: Model<any, any>, val: any, colName: any) {
 
 export function ariaAfterOutDB(model: Model<any, any>, colName: any) {
   const cipherText = model.getDataValue(colName);
+  if (!cipherText) return undefined;
   const plainText = decryptProcess(cipherText);
-
   return plainText;
 }
