@@ -1,6 +1,7 @@
 export type RequestBuilding = {
   [key: string]: any;
   name: string;
+  ho: string;
 };
 
 export type RequestSensor = {

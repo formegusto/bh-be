@@ -121,6 +121,10 @@ export function requestDecrypt(cipherBuffer: any): string {
 
     decodedByte = merge;
   });
+  const isExistZero = decodedByte.indexOf(0);
+  if (isExistZero > -1) {
+    decodedByte = decodedByte.slice(0, isExistZero);
+  }
 
   const decodedText = bytesToString(decodedByte, "unicode");
 

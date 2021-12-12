@@ -15,13 +15,12 @@ import { BuildingAttributes, BuildingCreationAttributes } from "./types";
 const buildingAttributes: ModelAttributes = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
-    primaryKey: true,
     autoIncrement: true,
+    primaryKey: true,
   },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
     set(val: any) {
       const cipherValue = encryptProcess(val.toString());
       this.setDataValue("name", cipherValue);
@@ -29,6 +28,19 @@ const buildingAttributes: ModelAttributes = {
     get() {
       return ariaAfterOutDB(this, "name");
     },
+    primaryKey: true,
+  },
+  ho: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    set(val: any) {
+      const cipherValue = encryptProcess(val.toString());
+      this.setDataValue("ho", cipherValue);
+    },
+    get() {
+      return ariaAfterOutDB(this, "ho");
+    },
+    primaryKey: true,
   },
 };
 
@@ -38,6 +50,7 @@ class BuildingModel
 {
   public readonly id!: number;
   public name!: string;
+  public ho!: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -61,6 +74,12 @@ class BuildingModel
             const cipherText = encryptProcess(plainText);
 
             (where as any)["name"] = cipherText;
+          }
+          if (where && (where as any)["ho"]) {
+            const plainText = (where as any)["ho"];
+            const cipherText = encryptProcess(plainText);
+
+            (where as any)["ho"] = cipherText;
           }
         },
       },

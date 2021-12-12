@@ -11,8 +11,9 @@ function bodyDecrypt(encryptBody: HumanDataBody) {}
 HumanDataRoutes.post("/", async (req: Request, res: Response) => {
   try {
     const body = <HumanDataBody>req.body;
-    // console.log(body);
-    // requestBodyDecrypt(body);
+    console.log(body);
+
+    requestBodyDecrypt(body);
 
     console.log(body);
     const [building, buildingResult] = await BuildingModel.findCreateFind({
