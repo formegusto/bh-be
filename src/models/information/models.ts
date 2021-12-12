@@ -1,5 +1,6 @@
 import { DataTypes, Model, ModelAttributes, Sequelize } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
+import SensorReportTimeModel from "../sensorReportTime";
 import {
   InformationAttributes,
   InformationCreationAttributes,
@@ -46,6 +47,12 @@ class InformationModel
       timestamps: false,
       charset: "utf8mb4",
       collate: "utf8mb4_general_ci",
+    });
+  }
+
+  public static associationsConfig(modelName: string) {
+    this.belongsTo(SensorReportTimeModel, {
+      as: modelName,
     });
   }
 }

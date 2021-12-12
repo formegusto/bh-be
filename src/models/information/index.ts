@@ -7,6 +7,12 @@ class InformationModel {
       _.initConfig(sequelize, informationNames[idx]);
     });
   }
+
+  public static associationsConfig() {
+    informationModels.forEach((_, idx) => {
+      _.associationsConfig(informationNames[idx]);
+    });
+  }
 }
 
 export default InformationModel;
