@@ -19,10 +19,7 @@ const sequelize = new Sequelize(database!, username!, password!, {
   host,
   port,
   dialect: "mysql",
-  timezone: "+09:00",
-  dialectOptions: {
-    timezone: "+09:00",
-  },
+  timezone: "+9:00",
 });
 
 // Data Part

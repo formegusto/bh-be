@@ -1,3 +1,4 @@
+import moment from "moment";
 import {
   Association,
   DataTypes,
@@ -34,10 +35,30 @@ const sensorReportTimeAttributes: ModelAttributes = {
   time: {
     type: DataTypes.DATE,
     allowNull: false,
+    defaultValue: DataTypes.NOW,
+    get() {
+      return moment(this.getDataValue("time")).format("YYYY-MM-DD hh:mm:ss");
+    },
   },
   sensorId: {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("createdAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("updatedAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
   },
 };
 
@@ -50,7 +71,7 @@ class SensorReportTimeModel
   public time!: Date;
   public readonly sensorId!: number;
 
-  public readonly createdAt!: Date;
+  public readonly createdAt!: string;
   public readonly updatedAt!: Date;
 
   public readonly createIsStay!: HasManyCreateAssociationMixin<IsStayModel>;

@@ -14,10 +14,11 @@ function bodyDecrypt(encryptBody: HumanDataBody) {}
 HumanDataRoutes.post("/", async (req: Request, res: Response) => {
   try {
     const body = <HumanDataBody>req.body;
+    console.log("----- request -----");
     console.log(body);
 
     requestBodyDecrypt(body);
-
+    console.log("----- decrypt request -----");
     console.log(body);
     const [building, buildingResult] = await BuildingModel.findCreateFind({
       where: {
@@ -34,9 +35,7 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
     });
     // console.log(sensor);
 
-    const report = await sensor.createTimeReport({
-      time: new Date(),
-    });
+    const report = await sensor.createTimeReport({});
 
     const information: { [key: string]: any } = {};
     const infoKeys = Object.keys(body.information);
@@ -64,8 +63,13 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
         ...information,
       },
     };
+    console.log("---- response ----");
+    console.log(responseBody);
+
     requestBodyEncrypt(responseBody, process.env.COMMUNITY_KEY!);
 
+    console.log("---- encrypt response ----");
+    console.log(responseBody);
     return res.status(201).json({
       status: true,
       ...responseBody,

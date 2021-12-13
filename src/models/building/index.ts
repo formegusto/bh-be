@@ -1,3 +1,4 @@
+import moment from "moment";
 import {
   Association,
   DataTypes,
@@ -7,6 +8,7 @@ import {
   Sequelize,
 } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
+import { convertKoreaDate } from "../../utils/getKoreaDate";
 import { ariaAfterOutDB } from "../../utils/indbEncrypt";
 import SensorModel from "../sensor";
 import { BuildingAttributes, BuildingCreationAttributes } from "./types";
@@ -14,8 +16,9 @@ import { BuildingAttributes, BuildingCreationAttributes } from "./types";
 const buildingAttributes: ModelAttributes = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
+    unique: true,
     autoIncrement: true,
-    primaryKey: true,
+    // primaryKey: true,
   },
   name: {
     type: DataTypes.STRING,
@@ -41,6 +44,22 @@ const buildingAttributes: ModelAttributes = {
     },
     primaryKey: true,
   },
+  createdAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("createdAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("updatedAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
+  },
 };
 
 class BuildingModel
@@ -51,8 +70,8 @@ class BuildingModel
   public name!: string;
   public ho!: string;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public readonly createdAt!: string;
+  public readonly updatedAt!: string;
 
   public readonly sensors?: SensorModel;
 

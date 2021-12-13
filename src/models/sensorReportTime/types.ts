@@ -2,7 +2,7 @@ import { Optional } from "sequelize/dist";
 
 export type SensorReportTimeAttributes = {
   readonly id: number;
-  time: Date;
+  time?: Date;
   readonly sensorId?: number;
 };
 

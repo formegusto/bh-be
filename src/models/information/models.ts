@@ -1,3 +1,4 @@
+import moment from "moment";
 import { DataTypes, Model, ModelAttributes, Sequelize } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
 import { ariaAfterOutDB } from "../../utils/indbEncrypt";
@@ -29,6 +30,22 @@ const informationAttributes: ModelAttributes = {
   sensorReportId: {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("createdAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("updatedAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
   },
 };
 

@@ -1,3 +1,4 @@
+import moment from "moment";
 import {
   Association,
   DataTypes,
@@ -33,6 +34,22 @@ const sensorAttributes: ModelAttributes = {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
   },
+  createdAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("createdAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    get() {
+      return moment(this.getDataValue("updatedAt")).format(
+        "YYYY-MM-DD hh:mm:ss"
+      );
+    },
+  },
 };
 
 class SensorModel
@@ -43,8 +60,8 @@ class SensorModel
   public name!: string;
   public readonly buildingId!: number;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public readonly createdAt!: string;
+  public readonly updatedAt!: string;
 
   public readonly building?: BuildingModel;
   public readonly timeReports?: SensorReportTimeModel[];
