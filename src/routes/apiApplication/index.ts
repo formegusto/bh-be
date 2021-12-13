@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import bcrypt from "bcrypt";
 import { ApiApplicationType, RequestApiApplication } from "./types";
 import ApiApplicationModel from "../../models/apiApplication";
+import { requestBodyEncrypt } from "../../utils/ARIAUtils";
 
 const ApiApplicationRoutes = Router();
 
@@ -32,10 +33,16 @@ ApiApplicationRoutes.post("/apply", async (req: Request, res: Response) => {
     const application = await ApiApplicationModel.create({
       ...apiApplication,
     });
+    const plainApplication = application.get({ plain: true });
+
+    // community decrypt
+    const communityKey = process.env.COMMUNITY_KEY!;
+    requestBodyEncrypt(plainApplication, communityKey);
+    console.log(plainApplication);
 
     return res.status(201).json({
       status: true,
-      application,
+      application: plainApplication,
     });
   } catch (err) {
     console.error(err);

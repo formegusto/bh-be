@@ -70,6 +70,7 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
 
     console.log("---- encrypt response ----");
     console.log(responseBody);
+
     return res.status(201).json({
       status: true,
       ...responseBody,

@@ -3,6 +3,8 @@ import UserModel from "../../models/user";
 import { RequestUserBody } from "./types";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
+import { loginCheck } from "../middlewares/loginCheck";
+import { requestBodyEncrypt } from "../../utils/ARIAUtils";
 
 const UserRoutes = Router();
 
@@ -56,6 +58,28 @@ UserRoutes.post("/", async (req: Request, res: Response) => {
       },
     });
   }
+});
+
+UserRoutes.get("/check", loginCheck, async (req: Request, res: Response) => {
+  const { id } = req.loginUser as any;
+  const user = await UserModel.findByPk(id, {
+    attributes: {
+      exclude: ["id"],
+    },
+  });
+
+  const plainUser = user?.get({ plain: true });
+  console.log(plainUser);
+
+  // community decrypt
+  const communityKey = process.env.COMMUNITY_KEY!;
+  requestBodyEncrypt(plainUser, communityKey, ["password"]);
+  console.log(plainUser);
+
+  return res.status(200).json({
+    status: true,
+    user: plainUser,
+  });
 });
 
 export default UserRoutes;

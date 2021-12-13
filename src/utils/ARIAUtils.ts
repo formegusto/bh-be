@@ -131,13 +131,18 @@ export function requestDecrypt(cipherBuffer: any): string {
   return decodedText;
 }
 
-export function requestBodyEncrypt(body: any, encryptKey?: string) {
+export function requestBodyEncrypt(
+  body: any,
+  encryptKey?: string,
+  exclude?: string[]
+) {
   Object.keys(body).forEach((_, i) => {
     if (_ !== "id" && _ !== "createdAt" && _ !== "updatedAt") {
       if (typeof body[_] === "object") {
-        requestBodyEncrypt(body[_]);
+        requestBodyEncrypt(body[_], encryptKey, exclude);
       } else {
-        body[_] = encryptProcess(body[_], encryptKey);
+        if (!exclude || !exclude.includes(_))
+          body[_] = encryptProcess(body[_], encryptKey);
       }
     }
   });

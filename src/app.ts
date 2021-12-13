@@ -2,14 +2,12 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import sequelize from "./models";
 import Routes from "./routes";
-import ARIAEngine from "./utils/ARIAEngine";
-import { stringToByte } from "./utils/ARIAUtils";
 import cors from "cors";
 
 dotenv.config();
 
 sequelize
-  .sync({ force: true })
+  .sync({ force: false })
   .then(() => {
     console.log("[sequelize] synchronizing success :)");
   })
