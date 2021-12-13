@@ -2,12 +2,14 @@ import { Request, Response, Router } from "express";
 import bcrypt from "bcrypt";
 import { ApiApplicationType, RequestApiApplication } from "./types";
 import ApiApplicationModel from "../../models/apiApplication";
-import { requestBodyEncrypt } from "../../utils/ARIAUtils";
+import { requestBodyDecrypt, requestBodyEncrypt } from "../../utils/ARIAUtils";
 
 const ApiApplicationRoutes = Router();
 
 ApiApplicationRoutes.post("/apply", async (req: Request, res: Response) => {
   const body = <RequestApiApplication>req.body;
+  requestBodyDecrypt(body);
+  console.log(body);
   const { id, username } = req.loginUser!;
 
   try {

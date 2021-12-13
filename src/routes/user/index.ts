@@ -4,13 +4,20 @@ import { RequestUserBody } from "./types";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { loginCheck } from "../middlewares/loginCheck";
-import { requestBodyEncrypt } from "../../utils/ARIAUtils";
+import {
+  encryptProcess,
+  requestBodyDecrypt,
+  requestBodyEncrypt,
+} from "../../utils/ARIAUtils";
 
 const UserRoutes = Router();
 
 UserRoutes.post("/", async (req: Request, res: Response) => {
   const body = <RequestUserBody>req.body;
+
   // front server와 복호화 과정이 붙어야 함.
+  console.log(body);
+  requestBodyDecrypt(body);
 
   try {
     const isExist = await UserModel.findOne({
@@ -42,10 +49,11 @@ UserRoutes.post("/", async (req: Request, res: Response) => {
             expiresIn: "3h",
           }
         );
-
+        const communityKey = process.env.COMMUNITY_KEY!;
+        let decryptToken = encryptProcess(token, communityKey);
         return res.status(201).json({
           status: true,
-          token,
+          token: decryptToken,
         });
       }
     }

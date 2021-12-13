@@ -1,11 +1,18 @@
 import { Request, Response, Router } from "express";
 import ApiApplicationModel from "../../../models/apiApplication";
 import { ApiApplicationStatus } from "../../../models/apiApplication/types";
+import {
+  requestBodyDecrypt,
+  requestBodyEncrypt,
+} from "../../../utils/ARIAUtils";
 
 const ApiApplicationRoutes = Router();
 
 ApiApplicationRoutes.patch("/confirm", async (req: Request, res: Response) => {
-  const { id } = <any>req.body;
+  const body = <any>req.body;
+  requestBodyDecrypt(body);
+  console.log(body);
+  const { id } = body;
 
   console.log("confirm", id);
 
@@ -22,10 +29,14 @@ ApiApplicationRoutes.patch("/confirm", async (req: Request, res: Response) => {
     );
 
     const application = await ApiApplicationModel.findByPk(id);
+    const plainApplication = application?.get({ plain: true });
+    const communityKey = process.env.COMMUNITY_KEY!;
+    requestBodyEncrypt(plainApplication, communityKey);
+    console.log(plainApplication);
 
     return res.status(200).json({
       status: true,
-      application,
+      application: plainApplication,
     });
   } catch (err) {
     console.error(err);

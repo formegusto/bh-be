@@ -3,13 +3,17 @@ import express, { Request, Response } from "express";
 import sequelize from "./models";
 import Routes from "./routes";
 import cors from "cors";
+import ApiApplicationModel from "./models/apiApplication";
+import UserModel from "./models/user";
 
 dotenv.config();
 
 sequelize
   .sync({ force: false })
-  .then(() => {
+  .then(async () => {
     console.log("[sequelize] synchronizing success :)");
+    await ApiApplicationModel.destroy({ where: {} });
+    await UserModel.destroy({ where: {} });
   })
   .catch((err) => {
     console.log(err);
