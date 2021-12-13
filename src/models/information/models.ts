@@ -31,22 +31,6 @@ const informationAttributes: ModelAttributes = {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    get() {
-      return moment(this.getDataValue("createdAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
-    },
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    get() {
-      return moment(this.getDataValue("updatedAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
-    },
-  },
 };
 
 class InformationModel
@@ -56,9 +40,6 @@ class InformationModel
   public readonly id!: number;
   public value!: string;
   public readonly sensorReportId!: number;
-
-  public readonly createdAt!: Date;
-  public readonly deletedAt!: Date;
 
   public static initConfig(sequelize: Sequelize, modelName: string) {
     this.init(informationAttributes, {

@@ -12,7 +12,7 @@ const Routes = Router();
 Routes.use("/admin", adminCheck, AdminRoutes);
 Routes.use("/user", UserRoutes);
 Routes.use("/apiService", loginCheck, ApiApplicationRoutes);
-// Routes.use("/api", validApiUse, ApiRoutes);
-Routes.use("/api", ApiRoutes);
+Routes.use("/api", validApiUse, ApiRoutes);
+// Routes.use("/api", ApiRoutes);
 
 export default Routes;

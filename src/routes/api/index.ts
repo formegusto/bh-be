@@ -9,6 +9,7 @@ import {
 } from "../../models/information/models";
 import SensorModel from "../../models/sensor";
 import SensorReportTimeModel from "../../models/sensorReportTime";
+import { requestBodyEncrypt } from "../../utils/ARIAUtils";
 import {
   getModelAsByModel,
   getModelsByExcludeColumns,
@@ -97,8 +98,8 @@ ApiRoutes.get("/humanData", async (req: Request, res: Response) => {
 
   try {
     const humanDatas = await BuildingModel.findAll({
-      raw: true,
-      nest: true,
+      // raw: true,
+      // nest: true,
       include: [
         {
           model: SensorModel,
@@ -113,10 +114,29 @@ ApiRoutes.get("/humanData", async (req: Request, res: Response) => {
       ],
     });
 
+    const plainHumanDatas = [];
+    for (let hd of humanDatas) {
+      const sensors = (hd as any).dataValues.Sensors;
+      for (let sensor of sensors) {
+        const timeReports = sensor.dataValues.timeReports;
+        for (let timeReport of timeReports) {
+          const report = timeReport.dataValues;
+          Object.keys(report).forEach((key) => {
+            if (!report[key].length) {
+              delete report[key];
+            }
+          });
+        }
+      }
+      plainHumanDatas.push(hd.get({ plain: true }));
+    }
+    console.log(plainHumanDatas);
+    requestBodyEncrypt(plainHumanDatas, req.decryptKey!);
+
     return res.status(200).json({
       status: true,
       query: Object.keys(query).length === 0 ? "none" : query,
-      requestQuery: humanDatas,
+      requestQuery: plainHumanDatas,
     });
   } catch (err: any) {
     console.error(err);

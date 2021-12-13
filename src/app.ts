@@ -9,7 +9,7 @@ import UserModel from "./models/user";
 dotenv.config();
 
 sequelize
-  .sync({ force: false })
+  .sync({ force: true })
   .then(async () => {
     console.log("[sequelize] synchronizing success :)");
     await ApiApplicationModel.destroy({ where: {} });

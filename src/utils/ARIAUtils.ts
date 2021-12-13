@@ -138,7 +138,15 @@ export function requestBodyEncrypt(
 ) {
   Object.keys(body).forEach((_, i) => {
     if (_ !== "id" && _ !== "createdAt" && _ !== "updatedAt") {
-      if (typeof body[_] === "object") {
+      if (Array.isArray(body[_])) {
+        for (let i = 0; i < body[_].length; i++) {
+          if (typeof body[_][i] === "object") {
+            requestBodyEncrypt(body[_][i], encryptKey, exclude);
+          } else {
+            body[_][i] = encryptProcess(body[_][i], encryptKey);
+          }
+        }
+      } else if (typeof body[_] === "object") {
         requestBodyEncrypt(body[_], encryptKey, exclude);
       } else {
         if (!exclude || !exclude.includes(_))
