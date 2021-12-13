@@ -1,5 +1,6 @@
 import { DataTypes, Model, ModelAttributes, Sequelize } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
+import { ariaAfterOutDB } from "../../utils/indbEncrypt";
 import SensorReportTimeModel from "../sensorReportTime";
 import {
   InformationAttributes,
@@ -20,6 +21,9 @@ const informationAttributes: ModelAttributes = {
     set(val: any) {
       const cipherValue = encryptProcess(val.toString());
       this.setDataValue("value", cipherValue);
+    },
+    get() {
+      return ariaAfterOutDB(this, "value");
     },
   },
   sensorReportId: {

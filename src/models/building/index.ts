@@ -6,8 +6,7 @@ import {
   Options,
   Sequelize,
 } from "sequelize/dist";
-import { RequestBuilding } from "../../routes/admin/humanData/types";
-import { decryptProcess, encryptProcess } from "../../utils/ARIAUtils";
+import { encryptProcess } from "../../utils/ARIAUtils";
 import { ariaAfterOutDB } from "../../utils/indbEncrypt";
 import SensorModel from "../sensor";
 import { BuildingAttributes, BuildingCreationAttributes } from "./types";

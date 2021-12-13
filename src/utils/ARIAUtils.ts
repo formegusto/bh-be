@@ -23,8 +23,8 @@ export function bytesToString(bytes: any, type: "ascii" | "unicode"): string {
   }
 }
 
-export function encryptProcess(plainText: string, decryptKey?: string): string {
-  const adminKey = decryptKey || process.env.INDBARIAKEY!;
+export function encryptProcess(plainText: string, encryptKey?: string): string {
+  const adminKey = encryptKey || process.env.INDBARIAKEY!;
   const aria = new ARIAEngine(256);
   const mk = stringToByte(adminKey, "ascii");
   aria.setKey(mk);
@@ -131,7 +131,17 @@ export function requestDecrypt(cipherBuffer: any): string {
   return decodedText;
 }
 
-export function requestBodyEncrypt(body: any, decryptKey?: string) {}
+export function requestBodyEncrypt(body: any, encryptKey?: string) {
+  Object.keys(body).forEach((_, i) => {
+    if (_ !== "id" && _ !== "createdAt" && _ !== "updatedAt") {
+      if (typeof body[_] === "object") {
+        requestBodyEncrypt(body[_]);
+      } else {
+        body[_] = encryptProcess(body[_], encryptKey);
+      }
+    }
+  });
+}
 
 export function requestBodyDecrypt(encryptBody: any) {
   Object.keys(encryptBody).forEach((_, i) => {

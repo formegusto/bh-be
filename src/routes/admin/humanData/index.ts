@@ -1,7 +1,10 @@
-import { Request, Response, Router } from "express";
+import { Request, response, Response, Router } from "express";
 import BuildingModel from "../../../models/building";
 import SensorModel from "../../../models/sensor";
-import { requestBodyDecrypt } from "../../../utils/ARIAUtils";
+import {
+  requestBodyDecrypt,
+  requestBodyEncrypt,
+} from "../../../utils/ARIAUtils";
 import { HumanDataBody } from "./types";
 
 const HumanDataRoutes = Router();
@@ -47,8 +50,7 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
       information[infoKeys[i]] = info.get({ plain: true }).value;
     }
 
-    return res.status(201).json({
-      status: true,
+    const responseBody = {
       building: {
         ...building.get({ plain: true }),
       },
@@ -61,6 +63,12 @@ HumanDataRoutes.post("/", async (req: Request, res: Response) => {
       information: {
         ...information,
       },
+    };
+    requestBodyEncrypt(responseBody, process.env.COMMUNITY_KEY!);
+
+    return res.status(201).json({
+      status: true,
+      ...responseBody,
     });
   } catch (err: any) {
     return res.status(500).json({
