@@ -8,7 +8,11 @@ const ApiApplicationRoutes = Router();
 
 ApiApplicationRoutes.post("/apply", async (req: Request, res: Response) => {
   const body = <RequestApiApplication>req.body;
+  // front server와 복호화 과정이 붙어야 함.
+  console.log("------- request -------");
+  console.log(body);
   requestBodyDecrypt(body);
+  console.log("------- request decrypt -------");
   console.log(body);
   const { id, username } = req.loginUser!;
 

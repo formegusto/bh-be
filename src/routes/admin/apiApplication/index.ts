@@ -10,8 +10,14 @@ const ApiApplicationRoutes = Router();
 
 ApiApplicationRoutes.patch("/confirm", async (req: Request, res: Response) => {
   const body = <any>req.body;
-  requestBodyDecrypt(body);
+
+  // front server와 복호화 과정이 붙어야 함.
+  console.log("------- request -------");
   console.log(body);
+  requestBodyDecrypt(body);
+  console.log("------- request decrypt -------");
+  console.log(body);
+
   const { id } = body;
 
   console.log("confirm", id);

@@ -157,9 +157,12 @@ export function requestBodyEncrypt(
 }
 
 export function requestBodyDecrypt(encryptBody: any) {
-  Object.keys(encryptBody).forEach((_, i) => {
-    if (encryptBody[_][0]) {
-      encryptBody[_] = requestDecrypt(encryptBody[_]);
+  Object.keys(encryptBody).forEach((_) => {
+    if (typeof encryptBody[_] !== "object") {
+      encryptBody[_] = decryptProcess(
+        encryptBody[_],
+        process.env.COMMUNITY_KEY
+      );
     } else {
       requestBodyDecrypt(encryptBody[_]);
     }

@@ -20,6 +20,7 @@ export async function loginCheck(
         },
       });
     }
+    console.log("token", token);
 
     const { username, role } = <DecodedUser>jwt.verify(token, secret);
     const user = await UserModel.findOne({

@@ -16,8 +16,11 @@ UserRoutes.post("/", async (req: Request, res: Response) => {
   const body = <RequestUserBody>req.body;
 
   // front server와 복호화 과정이 붙어야 함.
+  console.log("------- request -------");
   console.log(body);
   requestBodyDecrypt(body);
+  console.log("------- request decrypt -------");
+  console.log(body);
 
   try {
     const isExist = await UserModel.findOne({
@@ -36,6 +39,7 @@ UserRoutes.post("/", async (req: Request, res: Response) => {
     }
 
     body.password = await bcrypt.hash(body.password, 10);
+
     const { id } = await UserModel.create(body);
     if (id) {
       const user = await UserModel.findByPk(id, {

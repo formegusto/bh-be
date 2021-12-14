@@ -9,17 +9,16 @@ import { HumanDataBody } from "./types";
 
 const HumanDataRoutes = Router();
 
-function bodyDecrypt(encryptBody: HumanDataBody) {}
-
 HumanDataRoutes.post("/", async (req: Request, res: Response) => {
   try {
     const body = <HumanDataBody>req.body;
-    console.log("----- request -----");
+    // front server와 복호화 과정이 붙어야 함.
+    console.log("------- request -------");
+    console.log(body);
+    requestBodyDecrypt(body);
+    console.log("------- request decrypt -------");
     console.log(body);
 
-    requestBodyDecrypt(body);
-    console.log("----- decrypt request -----");
-    console.log(body);
     const [building, buildingResult] = await BuildingModel.findCreateFind({
       where: {
         ...body.building,
