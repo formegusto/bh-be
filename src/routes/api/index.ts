@@ -136,7 +136,7 @@ ApiRoutes.get("/humanData", async (req: Request, res: Response) => {
     return res.status(200).json({
       status: true,
       query: Object.keys(query).length === 0 ? "none" : query,
-      requestQuery: plainHumanDatas,
+      data: plainHumanDatas,
     });
   } catch (err: any) {
     console.error(err);
