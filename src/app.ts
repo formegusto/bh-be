@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import sequelize from "./models";
 import Routes from "./routes";
 import cors from "cors";
@@ -67,6 +67,10 @@ app.post("/symmetricKey", async (req: Request, res: Response) => {
         Buffer.from(body.symmetricKey.toString(), "base64")
       ).toString("utf8");
 
+      sessionCert.update({
+        symmetricKey: decSymKey,
+      });
+
       return res.status(200).json({
         status: true,
         decSymKey,
@@ -81,6 +85,48 @@ app.post("/symmetricKey", async (req: Request, res: Response) => {
     });
   }
 });
+
+app.post(
+  "/certTest",
+  decryptBody,
+  (req: Request, res: Response, next: NextFunction) => {
+    const body = req.body;
+
+    console.log(body);
+
+    res.custom = {
+      status: 200,
+      body,
+    };
+
+    return next();
+  },
+  encryptBody
+);
+
+app.delete(
+  "/sessionCert",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.query;
+
+    try {
+      const destroyRes = await SessionCertModel.destroy({
+        where: {
+          id,
+        },
+      });
+
+      return res.status(200).json({
+        status: true,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        status: false,
+      });
+    }
+  }
+);
 
 app.use(decryptBody, Routes, encryptBody);
 

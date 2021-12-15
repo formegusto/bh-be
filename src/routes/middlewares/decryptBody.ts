@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import EncryptType from "../../utils/EncryptType";
 import { encryptProcess, requestBodyDecrypt } from "../../utils/ARIAUtils";
+import SessionCertModel from "../../models/sessionCert";
 
-export default function decryptBody(
+export default async function decryptBody(
   req: Request,
   res: Response,
   next: NextFunction
@@ -24,6 +25,11 @@ export default function decryptBody(
       break;
     case EncryptType.ENC_COMMUNITY:
       decryptKey = encryptProcess(process.env.COMMUNITY_KEY!);
+      break;
+    case EncryptType.CERT_COMMUNITY:
+      const certId = req.headers["session-cert-id"];
+      const sessionCert = await SessionCertModel.findByPk(certId as any);
+      decryptKey = sessionCert?.symmetricKey;
       break;
   }
   requestBodyDecrypt(req.body, decryptKey);
