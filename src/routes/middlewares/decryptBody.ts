@@ -1,6 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import EncryptType from "../../utils/EncryptType";
-import { encryptProcess, requestBodyDecrypt } from "../../utils/ARIAUtils";
+import {
+  decryptProcess,
+  encryptProcess,
+  requestBodyDecrypt,
+} from "../../utils/ARIAUtils";
 import SessionCertModel from "../../models/sessionCert";
 
 export default async function decryptBody(
@@ -32,7 +36,15 @@ export default async function decryptBody(
       decryptKey = sessionCert?.symmetricKey;
       break;
   }
-  requestBodyDecrypt(req.body, decryptKey);
+
+  if (req.body["encryptBody"]) {
+    // 복호화
+    console.log("------req body------");
+    console.log(req.body["encryptBody"]);
+    req.body = JSON.parse(decryptProcess(req.body["encryptBody"], decryptKey));
+    console.log("------dec req body------");
+    console.log(req.body);
+  }
 
   return next();
 }

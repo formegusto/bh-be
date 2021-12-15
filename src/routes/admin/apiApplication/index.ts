@@ -30,8 +30,6 @@ ApiApplicationRoutes.patch(
 
       const application = await ApiApplicationModel.findByPk(id);
       const plainApplication = application?.get({ plain: true });
-      const communityKey = process.env.COMMUNITY_KEY!;
-      requestBodyEncrypt(plainApplication, communityKey);
 
       res.custom = {
         status: 200,

@@ -31,9 +31,17 @@ export default async function encryptBody(req: Request, res: Response) {
   }
   const exclude = res.exclude;
 
-  console.log("res", res.custom?.body);
-  requestBodyEncrypt(res.custom?.body, encryptKey, exclude);
-  console.log("res", res.custom?.body);
+  // 암호화
+  const resBodyStr = JSON.stringify(res.custom?.body);
+  console.log("------res body------");
+  console.log(resBodyStr);
+  console.log();
+  const encBodyStr = encryptProcess(resBodyStr, encryptKey);
+  console.log("------enc res body------");
+  console.log(encBodyStr);
+  console.log("\n\n");
 
-  return res.status(res.custom!.status).json(res.custom!.body);
+  return res.status(res.custom!.status).json({
+    encryptBody: encBodyStr,
+  });
 }
