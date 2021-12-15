@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { Includeable } from "sequelize/dist";
 import BuildingModel from "../../models/building";
 import InformationModel from "../../models/information";
@@ -64,90 +64,96 @@ Query Parameter Plan
       noon(정오), dusk(황혼), night(밤), midnight(자정), dawn(새벽)
       morning(아침), afternoon(오후), evening(저녁, 밤), daytime(낮에)
 */
-ApiRoutes.get("/humanData", async (req: Request, res: Response) => {
-  const query = <RequestBEMSApi>req.query;
-  console.log("-----query-----");
-  console.log(query);
+ApiRoutes.get(
+  "/humanData",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = <RequestBEMSApi>req.query;
+    console.log("-----query-----");
+    console.log(query);
 
-  const { include, exclude } = query;
-  // 1. 모델 파싱 (include, exclude query control)
-  // -1. include parsing
-  let infos: InformationModel[] = include
-    ? getModelsByIncludeColumns(include.split(","))
-    : informationModels;
-  // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
-  if (!include) {
-    if (exclude) {
-      infos = getModelsByExcludeColumns(exclude.split(","));
-    }
-  }
-  console.log("-----setting information model okay-----");
-  console.log(infos);
-
-  // 2. convert to includabletype
-  console.log("-----infos convert to includabletype-----");
-  const infosIncludable = infos.reduce<any>(
-    (acc, cur) =>
-      acc.concat({
-        model: cur,
-        as: getModelAsByModel(cur),
-      }),
-    []
-  );
-  console.log(infosIncludable);
-
-  try {
-    const humanDatas = await BuildingModel.findAll({
-      // raw: true,
-      // nest: true,
-      include: [
-        {
-          model: SensorModel,
-          include: [
-            {
-              model: SensorReportTimeModel,
-              as: "timeReports",
-              include: infosIncludable,
-            },
-          ],
-        },
-      ],
-    });
-
-    const plainHumanDatas = [];
-    for (let hd of humanDatas) {
-      const sensors = (hd as any).dataValues.Sensors;
-      for (let sensor of sensors) {
-        const timeReports = sensor.dataValues.timeReports;
-        for (let timeReport of timeReports) {
-          const report = timeReport.dataValues;
-          Object.keys(report).forEach((key) => {
-            if (!report[key].length) {
-              delete report[key];
-            }
-          });
-        }
+    const { include, exclude } = query;
+    // 1. 모델 파싱 (include, exclude query control)
+    // -1. include parsing
+    let infos: InformationModel[] = include
+      ? getModelsByIncludeColumns(include.split(","))
+      : informationModels;
+    // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
+    if (!include) {
+      if (exclude) {
+        infos = getModelsByExcludeColumns(exclude.split(","));
       }
-      plainHumanDatas.push(hd.get({ plain: true }));
     }
-    console.log(plainHumanDatas);
-    requestBodyEncrypt(plainHumanDatas, req.decryptKey!);
+    console.log("-----setting information model okay-----");
+    console.log(infos);
 
-    return res.status(200).json({
-      status: true,
-      query: Object.keys(query).length === 0 ? "none" : query,
-      data: plainHumanDatas,
-    });
-  } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({
-      status: false,
-      query: query,
-      error: {
-        message: err.message,
-      },
-    });
+    // 2. convert to includabletype
+    console.log("-----infos convert to includabletype-----");
+    const infosIncludable = infos.reduce<any>(
+      (acc, cur) =>
+        acc.concat({
+          model: cur,
+          as: getModelAsByModel(cur),
+        }),
+      []
+    );
+    console.log(infosIncludable);
+
+    try {
+      const humanDatas = await BuildingModel.findAll({
+        // raw: true,
+        // nest: true,
+        include: [
+          {
+            model: SensorModel,
+            include: [
+              {
+                model: SensorReportTimeModel,
+                as: "timeReports",
+                include: infosIncludable,
+              },
+            ],
+          },
+        ],
+      });
+
+      const plainHumanDatas = [];
+      for (let hd of humanDatas) {
+        const sensors = (hd as any).dataValues.Sensors;
+        for (let sensor of sensors) {
+          const timeReports = sensor.dataValues.timeReports;
+          for (let timeReport of timeReports) {
+            const report = timeReport.dataValues;
+            Object.keys(report).forEach((key) => {
+              if (!report[key].length) {
+                delete report[key];
+              }
+            });
+          }
+        }
+        plainHumanDatas.push(hd.get({ plain: true }));
+      }
+
+      res.custom = {
+        status: 200,
+        body: {
+          status: true,
+          query: Object.keys(query).length === 0 ? "none" : query,
+          data: plainHumanDatas,
+        },
+      };
+
+      return next();
+    } catch (err: any) {
+      console.error(err);
+      return res.status(500).json({
+        status: false,
+        query: query,
+        error: {
+          message: err.message,
+        },
+      });
+    }
   }
-});
+);
 
 export default ApiRoutes;

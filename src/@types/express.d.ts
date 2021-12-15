@@ -7,4 +7,11 @@ declare namespace Express {
     };
     decryptKey?: string;
   }
+  export interface Response {
+    exclude?: string[];
+    custom?: {
+      status: number;
+      body: any;
+    };
+  }
 }

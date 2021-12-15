@@ -5,6 +5,8 @@ import Routes from "./routes";
 import cors from "cors";
 import ApiApplicationModel from "./models/apiApplication";
 import UserModel from "./models/user";
+import decryptBody from "./routes/middlewares/decryptBody";
+import encryptBody from "./routes/middlewares/encryptBody";
 
 dotenv.config();
 
@@ -25,14 +27,7 @@ const app: express.Application = express();
 app.use(cors());
 app.use(express.json());
 
-app.use(Routes);
-app.get("/aria-test", (req: Request, res: Response) => {
-  const adminKey = process.env.INDBARIAKEY!;
-
-  return res.status(200).json({
-    status: true,
-  });
-});
+app.use(decryptBody, Routes, encryptBody);
 
 app.listen(PORT, () => {
   console.log("[express] listen", PORT);
