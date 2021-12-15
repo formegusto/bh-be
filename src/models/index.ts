@@ -5,6 +5,7 @@ import BuildingModel from "./building";
 import InformationModel from "./information";
 import SensorModel from "./sensor";
 import SensorReportTimeModel from "./sensorReportTime";
+import SessionCertModel from "./sessionCert";
 import UserModel from "./user";
 
 dotenv.config();
@@ -27,6 +28,7 @@ BuildingModel.initConfig(sequelize);
 SensorModel.initConfig(sequelize);
 SensorReportTimeModel.initConfig(sequelize);
 InformationModel.initConfig(sequelize);
+SessionCertModel.initConfig(sequelize);
 
 BuildingModel.associationsConfig();
 SensorModel.associationsConfig();
