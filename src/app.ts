@@ -10,7 +10,10 @@ import encryptBody from "./routes/middlewares/encryptBody";
 import getRandomBytes from "./utils/getRandomBytes";
 import { _generateKeyPair } from "./utils/_generateKeyPair";
 import SessionCertModel from "./models/sessionCert";
-import { RequestApplySymmetricKey } from "./models/sessionCert/types";
+import {
+  RequestApplySymmetricKey,
+  SessionStatus,
+} from "./models/sessionCert/types";
 import { createPrivateKey, privateDecrypt } from "crypto";
 
 dotenv.config();
@@ -41,6 +44,8 @@ app.get("/publicKey", async (req: Request, res: Response) => {
     ...keyPair,
   });
 
+  console.log("GET /publicKey status :", sessionCert.status);
+
   return res.status(200).json({
     status: true,
     sessionCert: {
@@ -66,17 +71,53 @@ app.post("/symmetricKey", async (req: Request, res: Response) => {
         key,
         Buffer.from(body.symmetricKey.toString(), "base64")
       ).toString("utf8");
+      const testString = getRandomBytes(32);
 
-      sessionCert.update({
+      const updateCert = await sessionCert.update({
+        status: SessionStatus.MATCHING,
         symmetricKey: decSymKey,
+        testString: testString,
       });
+      console.log("POST /symmetricKey status :", updateCert.status);
 
       return res.status(200).json({
         status: true,
-        decSymKey,
+        testString,
       });
     } else {
       throw new Error("");
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      status: false,
+    });
+  }
+});
+
+app.post("/establish", decryptBody, async (req: Request, res: Response) => {
+  const { testString } = req.body;
+
+  try {
+    const certId = req.headers["session-cert-id"];
+    const sessionCert = await SessionCertModel.findByPk(certId as any);
+
+    if (testString === sessionCert?.testString) {
+      const updateCert = await sessionCert?.update({
+        status: SessionStatus.ESTABLISH,
+      });
+
+      console.log("POST /establish status :", updateCert?.status);
+
+      return res.status(200).json({
+        status: true,
+        establish: true,
+      });
+    } else {
+      return res.status(403).json({
+        status: false,
+        establish: false,
+      });
     }
   } catch (err) {
     console.error(err);

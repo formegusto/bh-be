@@ -6,6 +6,8 @@ export type SessionCertAttributes = {
   privateKey: string;
   passphrase: string;
   symmetricKey?: string;
+  status?: SessionStatus;
+  testString?: string;
 };
 
 export interface SessionCertCreationAttributes
@@ -15,3 +17,9 @@ export type RequestApplySymmetricKey = {
   id: number;
   symmetricKey: string;
 };
+
+export enum SessionStatus {
+  INIT = "init",
+  MATCHING = "matching",
+  ESTABLISH = "establish",
+}

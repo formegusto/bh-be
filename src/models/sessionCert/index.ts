@@ -1,7 +1,11 @@
 import { DataTypes, Model, ModelAttributes, Sequelize } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
 import { ariaAfterOutDB } from "../../utils/indbEncrypt";
-import { SessionCertAttributes, SessionCertCreationAttributes } from "./types";
+import {
+  SessionCertAttributes,
+  SessionCertCreationAttributes,
+  SessionStatus,
+} from "./types";
 
 const sessionCertAttributes: ModelAttributes = {
   id: {
@@ -50,6 +54,19 @@ const sessionCertAttributes: ModelAttributes = {
       return ariaAfterOutDB(this, "symmetricKey");
     },
   },
+  status: {
+    type: DataTypes.ENUM(
+      SessionStatus.INIT,
+      SessionStatus.MATCHING,
+      SessionStatus.ESTABLISH
+    ),
+    allowNull: false,
+    defaultValue: SessionStatus.INIT,
+  },
+  testString: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 };
 
 class SessionCertModel
@@ -61,6 +78,8 @@ class SessionCertModel
   public privateKey!: string;
   public passphrase!: string;
   public symmetricKey!: string;
+  public status!: SessionStatus;
+  public testString!: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
