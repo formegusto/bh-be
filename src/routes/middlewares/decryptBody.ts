@@ -15,6 +15,24 @@ export default async function decryptBody(
   let requestEncryptType = req.headers["request-encrypt"] as EncryptType;
 
   if (requestEncryptType && requestEncryptType === EncryptType.PLAIN) {
+    const apiKey = req.headers.authorization;
+    if (!apiKey) {
+      return res.status(403).json({
+        status: false,
+        error: {
+          message: "PLAIN 데이터의 권한이 없습니다.",
+        },
+      });
+    } else {
+      if (apiKey !== process.env.ADMIN_REQUEST_KEY) {
+        return res.status(403).json({
+          status: false,
+          error: {
+            message: "PLAIN 데이터의 권한이 없습니다.",
+          },
+        });
+      }
+    }
     return next();
   }
 

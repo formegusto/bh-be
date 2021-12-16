@@ -50,16 +50,22 @@ export default async function encryptBody(req: Request, res: Response) {
   const exclude = res.exclude;
 
   // 암호화
-  const resBodyStr = JSON.stringify(res.custom?.body);
-  console.log("------res body------");
-  console.log(resBodyStr);
-  console.log();
-  const encBodyStr = encryptProcess(resBodyStr, encryptKey);
-  console.log("------enc res body------");
-  console.log(encBodyStr);
-  console.log("\n\n");
+  if (res.custom) {
+    const resBodyStr = JSON.stringify(res.custom?.body);
+    console.log("------res body------");
+    console.log(resBodyStr);
+    console.log();
+    const encBodyStr = encryptProcess(resBodyStr, encryptKey);
+    console.log("------enc res body------");
+    console.log(encBodyStr);
+    console.log("\n\n");
 
-  return res.status(res.custom!.status).json({
-    encryptBody: encBodyStr,
+    return res.status(res.custom!.status).json({
+      encryptBody: encBodyStr,
+    });
+  }
+
+  return res.status(200).json({
+    encryptBody: encryptProcess(JSON.stringify({ status: true })),
   });
 }
