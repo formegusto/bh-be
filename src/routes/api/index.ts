@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { Includeable } from "sequelize/dist";
+import moment from "moment";
+import { Includeable, Op } from "sequelize/dist";
 import BuildingModel from "../../models/building";
 import InformationModel from "../../models/information";
 import {
@@ -68,41 +69,121 @@ ApiRoutes.get(
   "/humanData",
   async (req: Request, res: Response, next: NextFunction) => {
     const query = <RequestBEMSApi>req.query;
-    console.log("-----query-----");
+
+    console.log("\n\n-----query-----");
     console.log(query);
 
-    const { include, exclude } = query;
-    // 1. 모델 파싱 (include, exclude query control)
-    // -1. include parsing
-    let infos: InformationModel[] = include
-      ? getModelsByIncludeColumns(include.split(","))
-      : informationModels;
-    // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
-    if (!include) {
-      if (exclude) {
-        infos = getModelsByExcludeColumns(exclude.split(","));
-      }
-    }
-    console.log("-----setting information model okay-----");
-    console.log(infos);
-
-    // 2. convert to includabletype
-    console.log("-----infos convert to includabletype-----");
-    const asList = infos.reduce<any>(
-      (acc, cur) => acc.concat(getModelAsByModel(cur)),
-      []
-    );
-    const infosIncludable = infos.reduce<any>(
-      (acc, cur) =>
-        acc.concat({
-          model: cur,
-          as: getModelAsByModel(cur),
-        }),
-      []
-    );
-    console.log(infosIncludable);
+    const { include, exclude, startDate, endDate } = query;
 
     try {
+      // 1. 모델 파싱 (include, exclude query control)
+      // -1. include parsing
+      let infos: InformationModel[] = include
+        ? getModelsByIncludeColumns(include.split(","))
+        : informationModels;
+      // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
+      if (!include) {
+        if (exclude) {
+          infos = getModelsByExcludeColumns(exclude.split(","));
+        }
+      }
+      console.log("\n\n-----setting information model okay-----");
+      console.log(infos);
+
+      // 2. startDate parsing
+      console.log("\n\n-----start date setting-----");
+      let startDateObject: moment.Moment | undefined;
+      if (startDate) {
+        // YYYY-MM-DDThh:mm:ss
+        // 1. 4글자보다 작으면 안됨 ( < 4 error )
+        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+        if (startDate.length < 4) {
+          throw new Error("startDate 값이 너무 짧습니다.");
+        }
+
+        if (startDate.length === 11) {
+          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
+        }
+
+        if (startDate.length > 19) {
+          throw new Error("startDate 값이 너무 깁니다.");
+        }
+
+        startDateObject = moment(startDate);
+      } else {
+        startDateObject = moment().subtract(7, "day");
+      }
+
+      if (!startDateObject.isValid()) {
+        throw new Error("startDate 가 ISO8601 형식에 맞지 않습니다.");
+      }
+      console.log("start date object:", startDateObject);
+
+      // 4. endDate parsing
+      console.log("\n\n-----end date setting-----");
+      let endDateObject: moment.Moment | undefined;
+      if (endDate) {
+        // YYYY-MM-DDThh:mm:ss
+        // 1. 4글자보다 작으면 안됨 ( < 4 error )
+        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+        if (endDate.length < 4) {
+          throw new Error("endDate 값이 너무 짧습니다.");
+        }
+
+        if (endDate.length === 11) {
+          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
+        }
+
+        if (endDate.length > 19) {
+          throw new Error("endDate 값이 너무 깁니다.");
+        }
+
+        endDateObject = moment(endDate);
+      } else {
+        endDateObject = moment(startDateObject).add(7, "d");
+      }
+
+      if (!endDateObject.isValid()) {
+        throw new Error("endDate 가 ISO8601 형식에 맞지 않습니다.");
+      }
+      if (!endDateObject.isAfter(startDateObject)) {
+        throw new Error("endDate는 startDate 보다 작거나 같을 수 없습니다.");
+      }
+      console.log("end date object:", endDateObject);
+
+      // 3. convert to includabletype
+      console.log("\n\n-----infos convert to includabletype-----");
+      const asList = infos.reduce<any>(
+        (acc, cur) => acc.concat(getModelAsByModel(cur)),
+        []
+      );
+      const infosIncludable = infos.reduce<any>(
+        (acc, cur) =>
+          acc.concat({
+            model: cur,
+            as: getModelAsByModel(cur),
+          }),
+        []
+      );
+      console.log(infosIncludable);
+
+      // 4. condition init
+      // reportTime
+      const whereReportTime = {
+        createdAt: {
+          [Op.and]: [
+            {
+              [Op.gte]: startDateObject.toDate(),
+            },
+            {
+              [Op.lte]: endDateObject.toDate(),
+            },
+          ],
+        },
+      };
+
       const humanDatas = await BuildingModel.findAll({
         // raw: true,
         // nest: true,
@@ -116,6 +197,7 @@ ApiRoutes.get(
                 as: "timeReports",
                 include: infosIncludable,
                 required: true,
+                where: whereReportTime,
               },
             ],
           },
@@ -145,7 +227,6 @@ ApiRoutes.get(
             });
 
             if (includeCount === 0) {
-              console.log("지워야지");
               isDelete = true;
               break;
             }

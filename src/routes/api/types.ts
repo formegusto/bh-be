@@ -20,4 +20,6 @@ export type InformationMap = {
 export type RequestBEMSApi = {
   include?: string;
   exclude?: string;
+  startDate?: string; // YYYY-MM-DDThh:mm
+  endDate?: string; // YYYY-MM-DDThh:mm
 };

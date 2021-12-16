@@ -37,17 +37,13 @@ const sensorAttributes: ModelAttributes = {
   createdAt: {
     type: DataTypes.DATE,
     get() {
-      return moment(this.getDataValue("createdAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
+      return moment(this.getDataValue("createdAt")).add(9, "h");
     },
   },
   updatedAt: {
     type: DataTypes.DATE,
     get() {
-      return moment(this.getDataValue("updatedAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
+      return moment(this.getDataValue("updatedAt")).add(9, "h");
     },
   },
 };
@@ -60,8 +56,8 @@ class SensorModel
   public name!: string;
   public readonly buildingId!: number;
 
-  public readonly createdAt!: string;
-  public readonly updatedAt!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
   public readonly building?: BuildingModel;
   public readonly timeReports?: SensorReportTimeModel[];

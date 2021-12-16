@@ -32,14 +32,6 @@ const sensorReportTimeAttributes: ModelAttributes = {
     primaryKey: true,
     autoIncrement: true,
   },
-  time: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-    get() {
-      return moment(this.getDataValue("time")).format("YYYY-MM-DD hh:mm:ss");
-    },
-  },
   sensorId: {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
@@ -47,17 +39,13 @@ const sensorReportTimeAttributes: ModelAttributes = {
   createdAt: {
     type: DataTypes.DATE,
     get() {
-      return moment(this.getDataValue("createdAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
+      return moment(this.getDataValue("createdAt")).add(9, "h");
     },
   },
   updatedAt: {
     type: DataTypes.DATE,
     get() {
-      return moment(this.getDataValue("updatedAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
+      return moment(this.getDataValue("updatedAt")).add(9, "h");
     },
   },
 };
@@ -68,10 +56,9 @@ class SensorReportTimeModel
 {
   [key: string]: any;
   public readonly id!: number;
-  public time!: Date;
   public readonly sensorId!: number;
 
-  public readonly createdAt!: string;
+  public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   public readonly createIsStay!: HasManyCreateAssociationMixin<IsStayModel>;

@@ -47,17 +47,13 @@ const buildingAttributes: ModelAttributes = {
   createdAt: {
     type: DataTypes.DATE,
     get() {
-      return moment(this.getDataValue("createdAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
+      return moment(this.getDataValue("createdAt")).add(9, "h");
     },
   },
   updatedAt: {
     type: DataTypes.DATE,
     get() {
-      return moment(this.getDataValue("updatedAt")).format(
-        "YYYY-MM-DD hh:mm:ss"
-      );
+      return moment(this.getDataValue("updatedAt")).add(9, "h");
     },
   },
 };
@@ -70,8 +66,8 @@ class BuildingModel
   public name!: string;
   public ho!: string;
 
-  public readonly createdAt!: string;
-  public readonly updatedAt!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
   public readonly sensors?: SensorModel;
 
