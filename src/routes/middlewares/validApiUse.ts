@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import ApiApplicationModel from "../../models/apiApplication";
 import { ApiApplicationStatus } from "../../models/apiApplication/types";
+import EncryptType from "../../utils/EncryptType";
 
 export default async function validApiUse(
   req: Request,
@@ -8,6 +9,13 @@ export default async function validApiUse(
   next: NextFunction
 ) {
   const apiKey = req.headers.authorization;
+  const adminRequestKey = process.env.ADMIN_REQUEST_KEY!;
+
+  // admin key로 들어온 경우 plain data로 전달
+  if (apiKey === adminRequestKey) {
+    req.headers["response-encrypt"] = EncryptType.PLAIN;
+    return next();
+  }
 
   if (!apiKey) {
     return res.status(403).json({
@@ -47,7 +55,9 @@ export default async function validApiUse(
     }
 
     // 사용자 맞춤형 암호화를 위해 다음 라우터에 사용자 암호화 키 전달
+    req.headers["response-encrypt"] = EncryptType.USER_SELF;
     req.decryptKey = application.decryptKey;
+    return next();
   } catch (err) {
     console.error(err);
 
@@ -58,6 +68,4 @@ export default async function validApiUse(
       },
     });
   }
-
-  return next();
 }

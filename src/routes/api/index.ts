@@ -88,6 +88,10 @@ ApiRoutes.get(
 
     // 2. convert to includabletype
     console.log("-----infos convert to includabletype-----");
+    const asList = infos.reduce<any>(
+      (acc, cur) => acc.concat(getModelAsByModel(cur)),
+      []
+    );
     const infosIncludable = infos.reduce<any>(
       (acc, cur) =>
         acc.concat({
@@ -105,11 +109,13 @@ ApiRoutes.get(
         include: [
           {
             model: SensorModel,
+            required: true,
             include: [
               {
                 model: SensorReportTimeModel,
                 as: "timeReports",
                 include: infosIncludable,
+                required: true,
               },
             ],
           },
@@ -117,20 +123,42 @@ ApiRoutes.get(
       });
 
       const plainHumanDatas = [];
-      for (let hd of humanDatas) {
-        const sensors = (hd as any).dataValues.Sensors;
+      for (let building of humanDatas) {
+        const plainBuilding = building.get({ plain: true });
+        const newSensors = [];
+        const sensors = (plainBuilding as any).Sensors;
+
         for (let sensor of sensors) {
-          const timeReports = sensor.dataValues.timeReports;
+          let isDelete: boolean = false;
+          const timeReports = sensor.timeReports;
           for (let timeReport of timeReports) {
-            const report = timeReport.dataValues;
-            Object.keys(report).forEach((key) => {
-              if (!report[key].length) {
-                delete report[key];
+            // 비어 있는 아우터 조인 결과 제거
+            Object.keys(timeReport).forEach((key) => {
+              if (timeReport[key].length === 0) {
+                delete timeReport[key];
               }
             });
+
+            let includeCount = 0;
+            Object.keys(timeReport).forEach((key) => {
+              if (asList.includes(key)) includeCount++;
+            });
+
+            if (includeCount === 0) {
+              console.log("지워야지");
+              isDelete = true;
+              break;
+            }
+          }
+
+          if (!isDelete) {
+            newSensors.push(sensor);
           }
         }
-        plainHumanDatas.push(hd.get({ plain: true }));
+        if (newSensors.length !== 0) {
+          (plainBuilding as any).Sensors = newSensors;
+          plainHumanDatas.push(plainBuilding);
+        }
       }
 
       res.custom = {
