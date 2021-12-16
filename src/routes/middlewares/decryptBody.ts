@@ -45,9 +45,6 @@ export default async function decryptBody(
     case EncryptType.COMMUNITY:
       decryptKey = process.env.COMMUNITY_KEY!;
       break;
-    case EncryptType.ENC_COMMUNITY:
-      decryptKey = encryptProcess(process.env.COMMUNITY_KEY!);
-      break;
     case EncryptType.CERT_COMMUNITY:
       const certId = req.headers["session-cert-id"];
       const sessionCert = await SessionCertModel.findByPk(certId as any);

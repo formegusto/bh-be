@@ -35,9 +35,6 @@ export default async function encryptBody(req: Request, res: Response) {
     case EncryptType.COMMUNITY:
       encryptKey = process.env.COMMUNITY_KEY!;
       break;
-    case EncryptType.ENC_COMMUNITY:
-      encryptKey = encryptProcess(process.env.COMMUNITY_KEY!);
-      break;
     case EncryptType.USER_SELF:
       encryptKey = req.decryptKey!;
       break;
