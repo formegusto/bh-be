@@ -110,13 +110,10 @@ class SensorReportTimeModel
       foreignKey: "sensorId",
     });
     informationModels.forEach((_, idx) => {
-      SensorReportTimeModel.hasMany(_, {
+      SensorReportTimeModel.hasOne(_, {
         sourceKey: "id",
         foreignKey: "sensorReportId",
-        as: {
-          singular: informationNames[idx],
-          plural: `${informationNames[idx]}`,
-        },
+        as: informationNames[idx],
       });
     });
   }
