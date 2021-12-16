@@ -42,6 +42,7 @@ export default async function decryptBody(
     console.log("------req body------");
     console.log(req.body["encryptBody"]);
     req.body = JSON.parse(decryptProcess(req.body["encryptBody"], decryptKey));
+
     console.log("------dec req body------");
     console.log(req.body);
   }

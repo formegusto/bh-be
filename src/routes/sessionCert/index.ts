@@ -126,4 +126,17 @@ SessionCertRoutes.post(
   }
 );
 
+SessionCertRoutes.delete("/", (req: Request, res: Response) => {
+  try {
+    const { id } = req.query;
+
+    if (id) {
+    }
+  } catch (err) {
+    console.error(err);
+
+    return;
+  }
+});
+
 export default SessionCertRoutes;
