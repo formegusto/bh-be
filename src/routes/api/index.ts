@@ -12,6 +12,7 @@ import {
   getModelsByExcludeColumns,
   getModelsByIncludeColumns,
 } from "../../utils/DataProcessUtils";
+import ResponseError from "../../utils/ResponseError";
 import { RequestBEMSApi } from "./types";
 
 const ApiRoutes = Router();
@@ -94,25 +95,16 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (startDate.length < 4) {
-          throw new Error("startDate 값이 너무 짧습니다.");
-        }
-
-        if (startDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (startDate.length > 19) {
-          throw new Error("startDate 값이 너무 깁니다.");
-        }
-
         startDateObject = moment(startDate);
       } else {
         startDateObject = moment().subtract(7, "day");
       }
 
       if (!startDateObject.isValid()) {
-        throw new Error("startDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "startDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       console.log("start date object:", startDateObject);
 
@@ -124,17 +116,6 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (endDate.length < 4) {
-          throw new Error("endDate 값이 너무 짧습니다.");
-        }
-
-        if (endDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (endDate.length > 19) {
-          throw new Error("endDate 값이 너무 깁니다.");
-        }
 
         endDateObject = moment(endDate);
       } else {
@@ -142,12 +123,17 @@ ApiRoutes.get(
       }
 
       if (!endDateObject.isValid()) {
-        throw new Error("endDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "endDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       if (!endDateObject.isAfter(startDateObject)) {
-        throw new Error("endDate는 startDate 보다 작거나 같을 수 없습니다.");
+        throw new ResponseError(
+          "endDate는 startDate 보다 작거나 같을 수 없습니다.",
+          400
+        );
       }
-      console.log("end date object:", endDateObject);
 
       // 3. convert to includabletype
       console.log("\n\n-----infos convert to includabletype-----");
@@ -284,8 +270,9 @@ ApiRoutes.get(
 
       return next();
     } catch (err: any) {
+      const statusCode = err.statusCode ? err.statusCode : 500;
       console.error(err);
-      return res.status(500).json({
+      return res.status(statusCode).json({
         status: false,
         query: query,
         error: {
@@ -330,17 +317,6 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (startDate.length < 4) {
-          throw new Error("startDate 값이 너무 짧습니다.");
-        }
-
-        if (startDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (startDate.length > 19) {
-          throw new Error("startDate 값이 너무 깁니다.");
-        }
 
         startDateObject = moment(startDate);
       } else {
@@ -348,7 +324,10 @@ ApiRoutes.get(
       }
 
       if (!startDateObject.isValid()) {
-        throw new Error("startDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "startDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       console.log("start date object:", startDateObject);
 
@@ -360,17 +339,6 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (endDate.length < 4) {
-          throw new Error("endDate 값이 너무 짧습니다.");
-        }
-
-        if (endDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (endDate.length > 19) {
-          throw new Error("endDate 값이 너무 깁니다.");
-        }
 
         endDateObject = moment(endDate);
       } else {
@@ -378,10 +346,16 @@ ApiRoutes.get(
       }
 
       if (!endDateObject.isValid()) {
-        throw new Error("endDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "endDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       if (!endDateObject.isAfter(startDateObject)) {
-        throw new Error("endDate는 startDate 보다 작거나 같을 수 없습니다.");
+        throw new ResponseError(
+          "endDate는 startDate 보다 작거나 같을 수 없습니다.",
+          400
+        );
       }
       console.log("end date object:", endDateObject);
 
@@ -516,8 +490,9 @@ ApiRoutes.get(
 
       return next();
     } catch (err: any) {
+      const statusCode = err.statusCode ? err.statusCode : 500;
       console.error(err);
-      return res.status(500).json({
+      return res.status(statusCode).json({
         status: false,
         query: query,
         error: {
@@ -562,25 +537,16 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (startDate.length < 4) {
-          throw new Error("startDate 값이 너무 짧습니다.");
-        }
-
-        if (startDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (startDate.length > 19) {
-          throw new Error("startDate 값이 너무 깁니다.");
-        }
-
         startDateObject = moment(startDate);
       } else {
         startDateObject = moment().subtract(7, "day");
       }
 
       if (!startDateObject.isValid()) {
-        throw new Error("startDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "startDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       console.log("start date object:", startDateObject);
 
@@ -592,17 +558,6 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (endDate.length < 4) {
-          throw new Error("endDate 값이 너무 짧습니다.");
-        }
-
-        if (endDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (endDate.length > 19) {
-          throw new Error("endDate 값이 너무 깁니다.");
-        }
 
         endDateObject = moment(endDate);
       } else {
@@ -610,12 +565,17 @@ ApiRoutes.get(
       }
 
       if (!endDateObject.isValid()) {
-        throw new Error("endDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "endDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       if (!endDateObject.isAfter(startDateObject)) {
-        throw new Error("endDate는 startDate 보다 작거나 같을 수 없습니다.");
+        throw new ResponseError(
+          "endDate는 startDate 보다 작거나 같을 수 없습니다.",
+          400
+        );
       }
-      console.log("end date object:", endDateObject);
 
       // 3. convert to includabletype
       console.log("\n\n-----infos convert to includabletype-----");
@@ -729,8 +689,9 @@ ApiRoutes.get(
 
       return next();
     } catch (err: any) {
+      const statusCode = err.statusCode ? err.statusCode : 500;
       console.error(err);
-      return res.status(500).json({
+      return res.status(statusCode).json({
         status: false,
         query: query,
         error: {
@@ -775,25 +736,16 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (startDate.length < 4) {
-          throw new Error("startDate 값이 너무 짧습니다.");
-        }
-
-        if (startDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (startDate.length > 19) {
-          throw new Error("startDate 값이 너무 깁니다.");
-        }
-
         startDateObject = moment(startDate);
       } else {
         startDateObject = moment().subtract(7, "day");
       }
 
       if (!startDateObject.isValid()) {
-        throw new Error("startDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "startDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       console.log("start date object:", startDateObject);
 
@@ -805,17 +757,6 @@ ApiRoutes.get(
         // 1. 4글자보다 작으면 안됨 ( < 4 error )
         // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
         // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        if (endDate.length < 4) {
-          throw new Error("endDate 값이 너무 짧습니다.");
-        }
-
-        if (endDate.length === 11) {
-          throw new Error("혹시 시간 설정을 까먹으시지 않으셨나요?");
-        }
-
-        if (endDate.length > 19) {
-          throw new Error("endDate 값이 너무 깁니다.");
-        }
 
         endDateObject = moment(endDate);
       } else {
@@ -823,12 +764,17 @@ ApiRoutes.get(
       }
 
       if (!endDateObject.isValid()) {
-        throw new Error("endDate 가 ISO8601 형식에 맞지 않습니다.");
+        throw new ResponseError(
+          "endDate 가 ISO8601 형식에 맞지 않습니다.",
+          400
+        );
       }
       if (!endDateObject.isAfter(startDateObject)) {
-        throw new Error("endDate는 startDate 보다 작거나 같을 수 없습니다.");
+        throw new ResponseError(
+          "endDate는 startDate 보다 작거나 같을 수 없습니다.",
+          400
+        );
       }
-      console.log("end date object:", endDateObject);
 
       // 3. convert to includabletype
       console.log("\n\n-----infos convert to includabletype-----");
@@ -921,8 +867,9 @@ ApiRoutes.get(
 
       return next();
     } catch (err: any) {
+      const statusCode = err.statusCode ? err.statusCode : 500;
       console.error(err);
-      return res.status(500).json({
+      return res.status(statusCode).json({
         status: false,
         query: query,
         error: {

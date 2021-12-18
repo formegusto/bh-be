@@ -53,6 +53,9 @@ export default async function decryptBody(
   }
 
   if (req.body && req.body !== "") {
+    if (typeof req.body === "object" && Object.keys(req.body).length === 0) {
+      return next();
+    }
     // 복호화
     console.log("------req body------");
     console.log(req.body);

@@ -76,9 +76,7 @@ SessionCertRoutes.post("/symmetricKey", async (req: Request, res: Response) => {
       const resBodyStr = JSON.stringify(resBody);
       const encResBodyStr = encryptProcess(resBodyStr, decSymKey);
 
-      return res.status(201).json({
-        encryptBody: encResBodyStr,
-      });
+      return res.status(201).send(encResBodyStr);
     } else {
       throw new Error("Invalid CertId");
     }
@@ -102,6 +100,8 @@ SessionCertRoutes.post(
       const sessionCert = await SessionCertModel.findByPk(certId as any);
 
       if (sessionCert) {
+        console.log(testString);
+        console.log(sessionCert.testString);
         if (testString === sessionCert.testString) {
           const updateCert = await sessionCert.update({
             status: SessionStatus.ESTABLISH,
