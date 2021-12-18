@@ -52,6 +52,16 @@ const userAttributes: ModelAttributes = {
       return ariaAfterOutDB(this, "phone");
     },
   },
+  association: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    set(val: any) {
+      ariaBeforeInDB(this, val, "association");
+    },
+    get() {
+      return ariaAfterOutDB(this, "association");
+    },
+  },
   nickname: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -79,6 +89,7 @@ class UserModel
   public password!: string;
   public email!: string;
   public phone!: string;
+  public association!: string;
   public nickname!: string;
   public role!: UserRole;
 

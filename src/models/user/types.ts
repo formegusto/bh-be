@@ -11,6 +11,7 @@ export type UserAttributes = {
   password: string;
   email: string;
   phone: string;
+  association: string;
   nickname: string;
   role: UserRole;
 };

@@ -4,11 +4,6 @@ import { RequestUserBody } from "./types";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { loginCheck } from "../middlewares/loginCheck";
-import {
-  encryptProcess,
-  requestBodyDecrypt,
-  requestBodyEncrypt,
-} from "../../utils/ARIAUtils";
 
 const UserRoutes = Router();
 

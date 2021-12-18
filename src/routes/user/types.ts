@@ -5,6 +5,7 @@ export type RequestUserBody = {
   password: string;
   email: string;
   phone: string;
+  association: string;
   nickname: string;
   role: UserRole;
 };
