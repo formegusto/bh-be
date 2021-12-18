@@ -90,7 +90,7 @@ class UnitModel
   public static associationConfig() {
     UnitModel.belongsTo(BuildingModel, {
       targetKey: "id",
-      foreignKey: "unitId",
+      foreignKey: "buildingId",
     });
     UnitModel.hasMany(SensorModel, {
       sourceKey: "id",

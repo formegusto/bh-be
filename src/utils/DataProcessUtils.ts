@@ -52,21 +52,21 @@ export function getModelsByExcludeColumns(cols: string[]): InformationModel[] {
 export function getModelAsByModel(model: InformationModel): string {
   switch (model) {
     case IsStayModel:
-      return "IsStay";
+      return "isStay";
     case ResidentCountModel:
-      return "ResidentCount";
+      return "residentCount";
     case TemperatureModel:
-      return "Temperature";
+      return "temperature";
     case HumidityModel:
-      return "Humidity";
+      return "humidity";
     case LuxModel:
-      return "Lux";
+      return "lux";
     case SkinTemperatureModel:
-      return "SkinTemperature";
+      return "skinTemperature";
     case ResidentDistributionModel:
-      return "ResidentDistribution";
+      return "residentDistribution";
     case SatisfactionModel:
-      return "Satisfaction";
+      return "satisfaction";
     default:
       throw new Error("Invalid Model");
   }

@@ -25,7 +25,10 @@ export default async function encryptBody(req: Request, res: Response) {
         });
       }
     }
-    return res.status(res.custom!.status).json(res.custom!.body);
+    if (res.custom)
+      return res.status(res.custom!.status).json(res.custom!.body);
+
+    return res.status(200);
   }
 
   if (!responseEncryptType) responseEncryptType = EncryptType.COMMUNITY;

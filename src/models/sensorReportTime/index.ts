@@ -113,7 +113,9 @@ class SensorReportTimeModel
       SensorReportTimeModel.hasOne(_, {
         sourceKey: "id",
         foreignKey: "sensorReportId",
-        as: informationNames[idx],
+        as:
+          informationNames[idx][0].toLowerCase() +
+          informationNames[idx].slice(1),
       });
     });
   }

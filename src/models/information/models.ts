@@ -54,7 +54,7 @@ class InformationModel
 
   public static associationsConfig(modelName: string) {
     this.belongsTo(SensorReportTimeModel, {
-      as: modelName,
+      as: modelName[0].toLowerCase() + modelName.slice(1),
     });
   }
 }
