@@ -57,9 +57,7 @@ export default async function encryptBody(req: Request, res: Response) {
     console.log(encBodyStr);
     console.log("\n\n");
 
-    return res.status(res.custom!.status).json({
-      encryptBody: encBodyStr,
-    });
+    return res.status(res.custom!.status).send(encBodyStr);
   }
 
   return res.status(200).json({

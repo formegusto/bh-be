@@ -15,7 +15,7 @@ import validApiUse from "./routes/middlewares/validApiUse";
 dotenv.config();
 
 sequelize
-  .sync({ force: false })
+  .sync({ force: true })
   .then(async () => {
     console.log("[sequelize] synchronizing success :)");
     await ApiApplicationModel.destroy({ where: {} });
@@ -29,6 +29,8 @@ const PORT = process.env.PORT || 80;
 const app: express.Application = express();
 
 app.use(cors());
+
+app.use(express.text());
 app.use(express.json());
 
 app.use("/sessionCert", SessionCertRoutes);

@@ -44,7 +44,7 @@ class InformationModel
   public static initConfig(sequelize: Sequelize, modelName: string) {
     this.init(informationAttributes, {
       sequelize,
-      modelName,
+      modelName: modelName[0].toLowerCase() + modelName.slice(1),
       tableName: modelName,
       timestamps: false,
       charset: "utf8mb4",

@@ -52,11 +52,11 @@ export default async function decryptBody(
       break;
   }
 
-  if (req.body["encryptBody"]) {
+  if (req.body && req.body !== "") {
     // 복호화
     console.log("------req body------");
-    console.log(req.body["encryptBody"]);
-    req.body = JSON.parse(decryptProcess(req.body["encryptBody"], decryptKey));
+    console.log(req.body);
+    req.body = JSON.parse(decryptProcess(req.body, decryptKey));
 
     console.log("------dec req body------");
     console.log(req.body);

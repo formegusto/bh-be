@@ -9,14 +9,14 @@ import {
 } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
 import { ariaAfterOutDB } from "../../utils/indbEncrypt";
-import BuildingModel from "../building";
 import SensorReportTimeModel from "../sensorReportTime";
+import UnitModel from "../unit";
 import { SensonCreationAttributes, SensorAttributes } from "./types";
 
 const sensorAttributes: ModelAttributes = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
-    primaryKey: true,
+    unique: true,
     autoIncrement: true,
   },
   name: {
@@ -29,8 +29,9 @@ const sensorAttributes: ModelAttributes = {
     get() {
       return ariaAfterOutDB(this, "name");
     },
+    primaryKey: true,
   },
-  buildingId: {
+  unitId: {
     type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
   },
@@ -39,6 +40,7 @@ const sensorAttributes: ModelAttributes = {
     get() {
       return moment(this.getDataValue("createdAt")).add(9, "h");
     },
+    primaryKey: true,
   },
   updatedAt: {
     type: DataTypes.DATE,
@@ -54,18 +56,18 @@ class SensorModel
 {
   public readonly id!: number;
   public name!: string;
-  public readonly buildingId!: number;
+  public readonly unitId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  public readonly building?: BuildingModel;
+  public readonly unit?: UnitModel;
   public readonly timeReports?: SensorReportTimeModel[];
 
   public readonly createTimeReport!: HasManyCreateAssociationMixin<SensorReportTimeModel>;
 
   public static associations: {
-    building: Association<SensorModel, BuildingModel>;
+    unit: Association<SensorModel, UnitModel>;
     timeReports: Association<SensorModel, SensorReportTimeModel>;
   };
 
@@ -89,9 +91,9 @@ class SensorModel
   }
 
   public static associationsConfig() {
-    SensorModel.belongsTo(BuildingModel, {
+    SensorModel.belongsTo(UnitModel, {
       targetKey: "id",
-      foreignKey: "buildingId",
+      foreignKey: "unitId",
     });
     SensorModel.hasMany(SensorReportTimeModel, {
       sourceKey: "id",

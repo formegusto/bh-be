@@ -1,15 +1,12 @@
 import { NextFunction, Request, response, Response, Router } from "express";
 import BuildingModel from "../../../models/building";
 import SensorModel from "../../../models/sensor";
-import {
-  requestBodyDecrypt,
-  requestBodyEncrypt,
-} from "../../../utils/ARIAUtils";
+import UnitModel from "../../../models/unit";
 import { HumanDataBody } from "./types";
 
-const HumanDataRoutes = Router();
+const BEMSHDMSRoutes = Router();
 
-HumanDataRoutes.post(
+BEMSHDMSRoutes.post(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,15 +14,23 @@ HumanDataRoutes.post(
 
       const [building, buildingResult] = await BuildingModel.findCreateFind({
         where: {
-          ...body.building,
+          name: body.building,
         },
       });
       // console.log(building);
 
+      const [unit, unitResult] = await UnitModel.findCreateFind({
+        where: {
+          name: body.unit,
+          buildingId: building.id,
+        },
+      });
+      // console.log(unit);
+
       const [sensor, sensorResult] = await SensorModel.findCreateFind({
         where: {
-          ...body.sensor,
-          buildingId: building.id,
+          name: body.sensor,
+          unitId: unit.id,
         },
       });
       // console.log(sensor);
@@ -47,6 +52,9 @@ HumanDataRoutes.post(
       const responseBody = {
         building: {
           ...building.get({ plain: true }),
+        },
+        unit: {
+          ...unit.get({ plain: true }),
         },
         sensor: {
           ...sensor.get({ plain: true }),
@@ -79,4 +87,4 @@ HumanDataRoutes.post(
   }
 );
 
-export default HumanDataRoutes;
+export default BEMSHDMSRoutes;

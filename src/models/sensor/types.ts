@@ -3,7 +3,7 @@ import { Optional } from "sequelize/dist";
 export type SensorAttributes = {
   readonly id: number;
   name: string;
-  readonly buildingId: number;
+  readonly unitId: number;
 };
 
 export interface SensonCreationAttributes

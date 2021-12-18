@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { Router } from "express";
 import ApiApplicationRoutes from "./apiApplication";
-import HumanDataRoutes from "./humanData";
+import BEMSHDMSRoutes from "./bems-hdms";
 
 const AdminRoutes = Router();
 
-AdminRoutes.use("/humanData", HumanDataRoutes);
+AdminRoutes.use("/bems-hdms", BEMSHDMSRoutes);
 AdminRoutes.use("/apiService", ApiApplicationRoutes);
 
 export default AdminRoutes;

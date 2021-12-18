@@ -8,10 +8,11 @@ import {
 } from "sequelize/dist";
 import { encryptProcess } from "../../utils/ARIAUtils";
 import { ariaAfterOutDB } from "../../utils/indbEncrypt";
-import UnitModel from "../unit";
-import { BuildingAttributes, BuildingCreationAttributes } from "./types";
+import { UnitAttributes, UnitCreationAttributes } from "./types";
+import BuildingModel from "../building";
+import SensorModel from "../sensor";
 
-const buildingAttributes: ModelAttributes = {
+const unitAttributes: ModelAttributes = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
     unique: true,
@@ -29,6 +30,11 @@ const buildingAttributes: ModelAttributes = {
     },
     primaryKey: true,
   },
+  buildingId: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    allowNull: false,
+    primaryKey: true,
+  },
   createdAt: {
     type: DataTypes.DATE,
     get() {
@@ -43,26 +49,29 @@ const buildingAttributes: ModelAttributes = {
   },
 };
 
-class BuildingModel
-  extends Model<BuildingAttributes, BuildingCreationAttributes>
-  implements BuildingAttributes
+class UnitModel
+  extends Model<UnitAttributes, UnitCreationAttributes>
+  implements UnitAttributes
 {
   public readonly id!: number;
   public name!: string;
+  public readonly buildingId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  public readonly units?: UnitModel[];
+  public readonly building?: BuildingModel;
+  public readonly sensors?: SensorModel[];
 
   public static associations: {
-    units: Association<BuildingModel, UnitModel>;
+    building: Association<UnitModel, BuildingModel>;
+    sensors: Association<UnitModel, SensorModel>;
   };
 
   public static initConfig(sequelize: Sequelize) {
-    BuildingModel.init(buildingAttributes, {
+    UnitModel.init(unitAttributes, {
       sequelize,
-      modelName: "Building",
+      modelName: "Unit",
       charset: "utf8mb4",
       collate: "utf8mb4_general_ci",
       hooks: {
@@ -78,13 +87,17 @@ class BuildingModel
     });
   }
 
-  public static associationsConfig() {
-    BuildingModel.hasMany(UnitModel, {
+  public static associationConfig() {
+    UnitModel.belongsTo(BuildingModel, {
+      targetKey: "id",
+      foreignKey: "unitId",
+    });
+    UnitModel.hasMany(SensorModel, {
       sourceKey: "id",
-      foreignKey: "buildingId",
-      as: { singular: "unit", plural: "units" },
+      foreignKey: "unitId",
+      as: { singular: "sensor", plural: "sensors" },
     });
   }
 }
 
-export default BuildingModel;
+export default UnitModel;
