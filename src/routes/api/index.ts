@@ -71,366 +71,142 @@ ApiRoutes.get(
     console.log(query);
 
     const { include, exclude, startDate, endDate } = query;
-
-    try {
-      // 1. 모델 파싱 (include, exclude query control)
-      // -1. include parsing
-      let infos: InformationModel[] = include
-        ? getModelsByIncludeColumns(include.split(","))
-        : informationModels;
-      // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
-      if (!include) {
-        if (exclude) {
-          infos = getModelsByExcludeColumns(exclude.split(","));
-        }
+    // 1. 모델 파싱 (include, exclude query control)
+    // -1. include parsing
+    let infos: InformationModel[] = include
+      ? getModelsByIncludeColumns(include.split(","))
+      : informationModels;
+    // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
+    if (!include) {
+      if (exclude) {
+        infos = getModelsByExcludeColumns(exclude.split(","));
       }
-      console.log("\n\n-----setting information model okay-----");
-      console.log(infos);
-
-      // 2. startDate parsing
-      console.log("\n\n-----start date setting-----");
-      let startDateObject: moment.Moment | undefined;
-      if (startDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        startDateObject = moment(startDate);
-      } else {
-        startDateObject = moment().subtract(7, "day");
-      }
-
-      if (!startDateObject.isValid()) {
-        throw new ResponseError(
-          "startDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      console.log("start date object:", startDateObject);
-
-      // 4. endDate parsing
-      console.log("\n\n-----end date setting-----");
-      let endDateObject: moment.Moment | undefined;
-      if (endDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-
-        endDateObject = moment(endDate);
-      } else {
-        endDateObject = moment(startDateObject).add(7, "d");
-      }
-
-      if (!endDateObject.isValid()) {
-        throw new ResponseError(
-          "endDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      if (!endDateObject.isAfter(startDateObject)) {
-        throw new ResponseError(
-          "endDate는 startDate 보다 작거나 같을 수 없습니다.",
-          400
-        );
-      }
-
-      // 3. convert to includabletype
-      console.log("\n\n-----infos convert to includabletype-----");
-      const asList = infos.reduce<any>(
-        (acc, cur) => acc.concat(getModelAsByModel(cur)),
-        []
-      );
-      const infosIncludable = infos.reduce<any>(
-        (acc, cur) =>
-          acc.concat({
-            model: cur,
-            as: getModelAsByModel(cur),
-            attributes: ["value"],
-          }),
-        []
-      );
-      console.log(infosIncludable);
-
-      // 4. condition init
-      // reportTime
-      const whereReportTime = {
-        createdAt: {
-          [Op.and]: [
-            {
-              [Op.gte]: startDateObject.toDate(),
-            },
-            {
-              [Op.lte]: endDateObject.toDate(),
-            },
-          ],
-        },
-      };
-
-      const humanDatas = await BuildingModel.findAll({
-        // raw: true,
-        // nest: true,
-        attributes: {
-          exclude: ["createdAt", "updatedAt"],
-        },
-        include: [
-          {
-            model: UnitModel,
-            as: "units",
-            required: true,
-            attributes: {
-              exclude: ["createdAt", "updatedAt", "buildingId"],
-            },
-            include: [
-              {
-                model: SensorModel,
-                as: "sensors",
-                required: true,
-                attributes: {
-                  exclude: ["createdAt", "updatedAt", "unitId"],
-                },
-                include: [
-                  {
-                    model: SensorReportTimeModel,
-                    as: "timeReports",
-                    include: infosIncludable,
-                    required: true,
-                    where: whereReportTime,
-                    attributes: ["createdAt"],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-
-      const plainHumanDatas = [];
-      for (let building of humanDatas) {
-        const plainBuilding = building.get({ plain: true });
-
-        const units = (plainBuilding as any).units;
-        const newUnits = [];
-
-        for (let unit of units) {
-          const newSensors = [];
-          const sensors = (unit as any).sensors;
-
-          for (let sensor of sensors) {
-            let isDelete: boolean = false;
-            const timeReports = sensor.timeReports;
-            for (let timeReport of timeReports) {
-              // 비어 있는 아우터 조인 결과 제거
-              Object.keys(timeReport).forEach((key) => {
-                if (timeReport[key] === null) {
-                  delete timeReport[key];
-                }
-              });
-
-              let includeCount = 0;
-              Object.keys(timeReport).forEach((key) => {
-                if (asList.includes(key)) {
-                  includeCount++;
-                  timeReport[key] = timeReport[key].value;
-                }
-              });
-
-              if (includeCount === 0) {
-                isDelete = true;
-                break;
-              }
-            }
-
-            if (!isDelete) {
-              newSensors.push(sensor);
-            }
-          }
-          if (newSensors.length !== 0) {
-            (unit as any).sensors = newSensors;
-            newUnits.push(unit);
-          }
-        }
-
-        if (newUnits.length !== 0) {
-          (plainBuilding as any).units = newUnits;
-          plainHumanDatas.push(plainBuilding);
-        }
-      }
-
-      res.custom = {
-        status: 200,
-        body: {
-          status: true,
-          query: Object.keys(query).length === 0 ? "none" : query,
-          data: {
-            buildings: plainHumanDatas,
-          },
-        },
-      };
-
-      return next();
-    } catch (err: any) {
-      const statusCode = err.statusCode ? err.statusCode : 500;
-      console.error(err);
-      return res.status(statusCode).json({
-        status: false,
-        query: query,
-        error: {
-          message: err.message,
-        },
-      });
     }
-  }
-);
+    console.log("\n\n-----setting information model okay-----");
+    console.log(infos);
 
-ApiRoutes.get(
-  "/bems-hdms/:buildingId",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const query = <RequestBEMSApi>req.query;
-    const { buildingId } = req.params;
+    // 2. startDate parsing
+    console.log("\n\n-----start date setting-----");
+    let startDateObject: moment.Moment | undefined;
+    if (startDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+      startDateObject = moment(startDate);
+    } else {
+      startDateObject = moment().subtract(7, "day");
+    }
 
-    console.log("\n\n-----query-----");
-    console.log(query);
+    if (!startDateObject.isValid()) {
+      return next(
+        new ResponseError("startDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    console.log("start date object:", startDateObject);
 
-    const { include, exclude, startDate, endDate } = query;
+    // 4. endDate parsing
+    console.log("\n\n-----end date setting-----");
+    let endDateObject: moment.Moment | undefined;
+    if (endDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
 
-    try {
-      // 1. 모델 파싱 (include, exclude query control)
-      // -1. include parsing
-      let infos: InformationModel[] = include
-        ? getModelsByIncludeColumns(include.split(","))
-        : informationModels;
-      // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
-      if (!include) {
-        if (exclude) {
-          infos = getModelsByExcludeColumns(exclude.split(","));
-        }
-      }
-      console.log("\n\n-----setting information model okay-----");
-      console.log(infos);
+      endDateObject = moment(endDate);
+    } else {
+      endDateObject = moment(startDateObject).add(7, "d");
+    }
 
-      // 2. startDate parsing
-      console.log("\n\n-----start date setting-----");
-      let startDateObject: moment.Moment | undefined;
-      if (startDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-
-        startDateObject = moment(startDate);
-      } else {
-        startDateObject = moment().subtract(7, "day");
-      }
-
-      if (!startDateObject.isValid()) {
-        throw new ResponseError(
-          "startDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      console.log("start date object:", startDateObject);
-
-      // 4. endDate parsing
-      console.log("\n\n-----end date setting-----");
-      let endDateObject: moment.Moment | undefined;
-      if (endDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-
-        endDateObject = moment(endDate);
-      } else {
-        endDateObject = moment(startDateObject).add(7, "d");
-      }
-
-      if (!endDateObject.isValid()) {
-        throw new ResponseError(
-          "endDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      if (!endDateObject.isAfter(startDateObject)) {
-        throw new ResponseError(
+    if (!endDateObject.isValid()) {
+      return next(
+        new ResponseError("endDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    if (!endDateObject.isAfter(startDateObject)) {
+      return next(
+        new ResponseError(
           "endDate는 startDate 보다 작거나 같을 수 없습니다.",
           400
-        );
-      }
-      console.log("end date object:", endDateObject);
-
-      // 3. convert to includabletype
-      console.log("\n\n-----infos convert to includabletype-----");
-      const asList = infos.reduce<any>(
-        (acc, cur) => acc.concat(getModelAsByModel(cur)),
-        []
+        )
       );
-      const infosIncludable = infos.reduce<any>(
-        (acc, cur) =>
-          acc.concat({
-            model: cur,
-            as: getModelAsByModel(cur),
-            attributes: ["value"],
-          }),
-        []
-      );
-      console.log(infosIncludable);
+    }
 
-      // 4. condition init
-      // reportTime
-      const whereReportTime = {
-        createdAt: {
-          [Op.and]: [
+    // 3. convert to includabletype
+    console.log("\n\n-----infos convert to includabletype-----");
+    const asList = infos.reduce<any>(
+      (acc, cur) => acc.concat(getModelAsByModel(cur)),
+      []
+    );
+    const infosIncludable = infos.reduce<any>(
+      (acc, cur) =>
+        acc.concat({
+          model: cur,
+          as: getModelAsByModel(cur),
+          attributes: ["value"],
+        }),
+      []
+    );
+    console.log(infosIncludable);
+
+    // 4. condition init
+    // reportTime
+    const whereReportTime = {
+      createdAt: {
+        [Op.and]: [
+          {
+            [Op.gte]: startDateObject.toDate(),
+          },
+          {
+            [Op.lte]: endDateObject.toDate(),
+          },
+        ],
+      },
+    };
+
+    const humanDatas = await BuildingModel.findAll({
+      // raw: true,
+      // nest: true,
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: UnitModel,
+          as: "units",
+          required: true,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "buildingId"],
+          },
+          include: [
             {
-              [Op.gte]: startDateObject.toDate(),
-            },
-            {
-              [Op.lte]: endDateObject.toDate(),
+              model: SensorModel,
+              as: "sensors",
+              required: true,
+              attributes: {
+                exclude: ["createdAt", "updatedAt", "unitId"],
+              },
+              include: [
+                {
+                  model: SensorReportTimeModel,
+                  as: "timeReports",
+                  include: infosIncludable,
+                  required: true,
+                  where: whereReportTime,
+                  attributes: ["createdAt"],
+                },
+              ],
             },
           ],
         },
-      };
+      ],
+    });
 
-      const humanDatas = await BuildingModel.findOne({
-        where: {
-          id: buildingId,
-        },
-        attributes: {
-          exclude: ["createdAt", "updatedAt"],
-        },
-        include: [
-          {
-            model: UnitModel,
-            as: "units",
-            required: true,
-            attributes: {
-              exclude: ["createdAt", "updatedAt", "buildingId"],
-            },
-            include: [
-              {
-                model: SensorModel,
-                as: "sensors",
-                required: true,
-                attributes: {
-                  exclude: ["createdAt", "updatedAt", "unitId"],
-                },
-                include: [
-                  {
-                    model: SensorReportTimeModel,
-                    as: "timeReports",
-                    include: infosIncludable,
-                    required: true,
-                    where: whereReportTime,
-                    attributes: ["createdAt"],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
+    const plainHumanDatas = [];
+    for (let building of humanDatas) {
+      const plainBuilding = building.get({ plain: true });
 
-      const plainBuilding = humanDatas?.get({ plain: true });
       const units = (plainBuilding as any).units;
       const newUnits = [];
 
@@ -475,172 +251,178 @@ ApiRoutes.get(
 
       if (newUnits.length !== 0) {
         (plainBuilding as any).units = newUnits;
+        plainHumanDatas.push(plainBuilding);
       }
-
-      res.custom = {
-        status: 200,
-        body: {
-          status: true,
-          query: Object.keys(query).length === 0 ? "none" : query,
-          data: {
-            building: plainBuilding,
-          },
-        },
-      };
-
-      return next();
-    } catch (err: any) {
-      const statusCode = err.statusCode ? err.statusCode : 500;
-      console.error(err);
-      return res.status(statusCode).json({
-        status: false,
-        query: query,
-        error: {
-          message: err.message,
-        },
-      });
     }
+
+    res.custom = {
+      status: 200,
+      body: {
+        status: true,
+        query: Object.keys(query).length === 0 ? "none" : query,
+        data: {
+          buildings: plainHumanDatas,
+        },
+      },
+    };
+
+    return next();
   }
 );
 
 ApiRoutes.get(
-  "/bems-hdms/:buildingId/:unitId",
+  "/bems-hdms/:buildingId",
   async (req: Request, res: Response, next: NextFunction) => {
     const query = <RequestBEMSApi>req.query;
-    const { unitId } = req.params;
+    const { buildingId } = req.params;
 
     console.log("\n\n-----query-----");
     console.log(query);
 
     const { include, exclude, startDate, endDate } = query;
 
-    try {
-      // 1. 모델 파싱 (include, exclude query control)
-      // -1. include parsing
-      let infos: InformationModel[] = include
-        ? getModelsByIncludeColumns(include.split(","))
-        : informationModels;
-      // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
-      if (!include) {
-        if (exclude) {
-          infos = getModelsByExcludeColumns(exclude.split(","));
-        }
+    // 1. 모델 파싱 (include, exclude query control)
+    // -1. include parsing
+    let infos: InformationModel[] = include
+      ? getModelsByIncludeColumns(include.split(","))
+      : informationModels;
+    // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
+    if (!include) {
+      if (exclude) {
+        infos = getModelsByExcludeColumns(exclude.split(","));
       }
-      console.log("\n\n-----setting information model okay-----");
-      console.log(infos);
+    }
+    console.log("\n\n-----setting information model okay-----");
+    console.log(infos);
 
-      // 2. startDate parsing
-      console.log("\n\n-----start date setting-----");
-      let startDateObject: moment.Moment | undefined;
-      if (startDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        startDateObject = moment(startDate);
-      } else {
-        startDateObject = moment().subtract(7, "day");
-      }
+    // 2. startDate parsing
+    console.log("\n\n-----start date setting-----");
+    let startDateObject: moment.Moment | undefined;
+    if (startDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
 
-      if (!startDateObject.isValid()) {
-        throw new ResponseError(
-          "startDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      console.log("start date object:", startDateObject);
+      startDateObject = moment(startDate);
+    } else {
+      startDateObject = moment().subtract(7, "day");
+    }
 
-      // 4. endDate parsing
-      console.log("\n\n-----end date setting-----");
-      let endDateObject: moment.Moment | undefined;
-      if (endDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+    if (!startDateObject.isValid()) {
+      return next(
+        new ResponseError("startDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    console.log("start date object:", startDateObject);
 
-        endDateObject = moment(endDate);
-      } else {
-        endDateObject = moment(startDateObject).add(7, "d");
-      }
+    // 4. endDate parsing
+    console.log("\n\n-----end date setting-----");
+    let endDateObject: moment.Moment | undefined;
+    if (endDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
 
-      if (!endDateObject.isValid()) {
-        throw new ResponseError(
-          "endDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      if (!endDateObject.isAfter(startDateObject)) {
-        throw new ResponseError(
+      endDateObject = moment(endDate);
+    } else {
+      endDateObject = moment(startDateObject).add(7, "d");
+    }
+
+    if (!endDateObject.isValid()) {
+      return next(
+        new ResponseError("endDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    if (!endDateObject.isAfter(startDateObject)) {
+      return next(
+        new ResponseError(
           "endDate는 startDate 보다 작거나 같을 수 없습니다.",
           400
-        );
-      }
-
-      // 3. convert to includabletype
-      console.log("\n\n-----infos convert to includabletype-----");
-      const asList = infos.reduce<any>(
-        (acc, cur) => acc.concat(getModelAsByModel(cur)),
-        []
+        )
       );
-      const infosIncludable = infos.reduce<any>(
-        (acc, cur) =>
-          acc.concat({
-            model: cur,
-            as: getModelAsByModel(cur),
-            attributes: ["value"],
-          }),
-        []
-      );
-      console.log(infosIncludable);
+    }
+    console.log("end date object:", endDateObject);
 
-      // 4. condition init
-      // reportTime
-      const whereReportTime = {
-        createdAt: {
-          [Op.and]: [
+    // 3. convert to includabletype
+    console.log("\n\n-----infos convert to includabletype-----");
+    const asList = infos.reduce<any>(
+      (acc, cur) => acc.concat(getModelAsByModel(cur)),
+      []
+    );
+    const infosIncludable = infos.reduce<any>(
+      (acc, cur) =>
+        acc.concat({
+          model: cur,
+          as: getModelAsByModel(cur),
+          attributes: ["value"],
+        }),
+      []
+    );
+    console.log(infosIncludable);
+
+    // 4. condition init
+    // reportTime
+    const whereReportTime = {
+      createdAt: {
+        [Op.and]: [
+          {
+            [Op.gte]: startDateObject.toDate(),
+          },
+          {
+            [Op.lte]: endDateObject.toDate(),
+          },
+        ],
+      },
+    };
+
+    const humanDatas = await BuildingModel.findOne({
+      where: {
+        id: buildingId,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: UnitModel,
+          as: "units",
+          required: true,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "buildingId"],
+          },
+          include: [
             {
-              [Op.gte]: startDateObject.toDate(),
-            },
-            {
-              [Op.lte]: endDateObject.toDate(),
+              model: SensorModel,
+              as: "sensors",
+              required: true,
+              attributes: {
+                exclude: ["createdAt", "updatedAt", "unitId"],
+              },
+              include: [
+                {
+                  model: SensorReportTimeModel,
+                  as: "timeReports",
+                  include: infosIncludable,
+                  required: true,
+                  where: whereReportTime,
+                  attributes: ["createdAt"],
+                },
+              ],
             },
           ],
         },
-      };
+      ],
+    });
 
-      const humanDatas = await UnitModel.findOne({
-        where: {
-          id: unitId,
-        },
-        attributes: {
-          exclude: ["createdAt", "updatedAt", "buildingId"],
-        },
-        include: [
-          {
-            model: SensorModel,
-            as: "sensors",
-            required: true,
-            attributes: {
-              exclude: ["createdAt", "updatedAt", "unitId"],
-            },
-            include: [
-              {
-                model: SensorReportTimeModel,
-                as: "timeReports",
-                include: infosIncludable,
-                required: true,
-                where: whereReportTime,
-                attributes: ["createdAt"],
-              },
-            ],
-          },
-        ],
-      });
+    const plainBuilding = humanDatas?.get({ plain: true });
+    const units = (plainBuilding as any).units;
+    const newUnits = [];
 
-      const plainUnit = humanDatas?.get({ plain: true });
-      const sensors = (plainUnit as any).sensors;
+    for (let unit of units) {
       const newSensors = [];
+      const sensors = (unit as any).sensors;
 
       for (let sensor of sensors) {
         let isDelete: boolean = false;
@@ -671,167 +453,173 @@ ApiRoutes.get(
           newSensors.push(sensor);
         }
       }
-
       if (newSensors.length !== 0) {
-        (plainUnit as any).sensors = newSensors;
+        (unit as any).sensors = newSensors;
+        newUnits.push(unit);
       }
-
-      res.custom = {
-        status: 200,
-        body: {
-          status: true,
-          query: Object.keys(query).length === 0 ? "none" : query,
-          data: {
-            unit: plainUnit,
-          },
-        },
-      };
-
-      return next();
-    } catch (err: any) {
-      const statusCode = err.statusCode ? err.statusCode : 500;
-      console.error(err);
-      return res.status(statusCode).json({
-        status: false,
-        query: query,
-        error: {
-          message: err.message,
-        },
-      });
     }
+
+    if (newUnits.length !== 0) {
+      (plainBuilding as any).units = newUnits;
+    }
+
+    res.custom = {
+      status: 200,
+      body: {
+        status: true,
+        query: Object.keys(query).length === 0 ? "none" : query,
+        data: {
+          building: plainBuilding,
+        },
+      },
+    };
+
+    return next();
   }
 );
 
 ApiRoutes.get(
-  "/bems-hdms/:buildingId/:unitId/:sensorId",
+  "/bems-hdms/:buildingId/:unitId",
   async (req: Request, res: Response, next: NextFunction) => {
     const query = <RequestBEMSApi>req.query;
-    const { sensorId } = req.params;
+    const { unitId } = req.params;
 
     console.log("\n\n-----query-----");
     console.log(query);
 
     const { include, exclude, startDate, endDate } = query;
 
-    try {
-      // 1. 모델 파싱 (include, exclude query control)
-      // -1. include parsing
-      let infos: InformationModel[] = include
-        ? getModelsByIncludeColumns(include.split(","))
-        : informationModels;
-      // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
-      if (!include) {
-        if (exclude) {
-          infos = getModelsByExcludeColumns(exclude.split(","));
-        }
+    // 1. 모델 파싱 (include, exclude query control)
+    // -1. include parsing
+    let infos: InformationModel[] = include
+      ? getModelsByIncludeColumns(include.split(","))
+      : informationModels;
+    // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
+    if (!include) {
+      if (exclude) {
+        infos = getModelsByExcludeColumns(exclude.split(","));
       }
-      console.log("\n\n-----setting information model okay-----");
-      console.log(infos);
+    }
+    console.log("\n\n-----setting information model okay-----");
+    console.log(infos);
 
-      // 2. startDate parsing
-      console.log("\n\n-----start date setting-----");
-      let startDateObject: moment.Moment | undefined;
-      if (startDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
-        startDateObject = moment(startDate);
-      } else {
-        startDateObject = moment().subtract(7, "day");
-      }
+    // 2. startDate parsing
+    console.log("\n\n-----start date setting-----");
+    let startDateObject: moment.Moment | undefined;
+    if (startDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+      startDateObject = moment(startDate);
+    } else {
+      startDateObject = moment().subtract(7, "day");
+    }
 
-      if (!startDateObject.isValid()) {
-        throw new ResponseError(
-          "startDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      console.log("start date object:", startDateObject);
+    if (!startDateObject.isValid()) {
+      return next(
+        new ResponseError("startDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    console.log("start date object:", startDateObject);
 
-      // 4. endDate parsing
-      console.log("\n\n-----end date setting-----");
-      let endDateObject: moment.Moment | undefined;
-      if (endDate) {
-        // YYYY-MM-DDThh:mm:ss
-        // 1. 4글자보다 작으면 안됨 ( < 4 error )
-        // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
-        // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+    // 4. endDate parsing
+    console.log("\n\n-----end date setting-----");
+    let endDateObject: moment.Moment | undefined;
+    if (endDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
 
-        endDateObject = moment(endDate);
-      } else {
-        endDateObject = moment(startDateObject).add(7, "d");
-      }
+      endDateObject = moment(endDate);
+    } else {
+      endDateObject = moment(startDateObject).add(7, "d");
+    }
 
-      if (!endDateObject.isValid()) {
-        throw new ResponseError(
-          "endDate 가 ISO8601 형식에 맞지 않습니다.",
-          400
-        );
-      }
-      if (!endDateObject.isAfter(startDateObject)) {
-        throw new ResponseError(
+    if (!endDateObject.isValid()) {
+      return next(
+        new ResponseError("endDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    if (!endDateObject.isAfter(startDateObject)) {
+      return next(
+        new ResponseError(
           "endDate는 startDate 보다 작거나 같을 수 없습니다.",
           400
-        );
-      }
-
-      // 3. convert to includabletype
-      console.log("\n\n-----infos convert to includabletype-----");
-      const asList = infos.reduce<any>(
-        (acc, cur) => acc.concat(getModelAsByModel(cur)),
-        []
+        )
       );
-      const infosIncludable = infos.reduce<any>(
-        (acc, cur) =>
-          acc.concat({
-            model: cur,
-            as: getModelAsByModel(cur),
-            attributes: ["value"],
-          }),
-        []
-      );
-      console.log(infosIncludable);
+    }
+    console.log("end date object:", endDateObject);
 
-      // 4. condition init
-      // reportTime
-      const whereReportTime = {
-        createdAt: {
-          [Op.and]: [
+    // 3. convert to includabletype
+    console.log("\n\n-----infos convert to includabletype-----");
+    const asList = infos.reduce<any>(
+      (acc, cur) => acc.concat(getModelAsByModel(cur)),
+      []
+    );
+    const infosIncludable = infos.reduce<any>(
+      (acc, cur) =>
+        acc.concat({
+          model: cur,
+          as: getModelAsByModel(cur),
+          attributes: ["value"],
+        }),
+      []
+    );
+    console.log(infosIncludable);
+
+    // 4. condition init
+    // reportTime
+    const whereReportTime = {
+      createdAt: {
+        [Op.and]: [
+          {
+            [Op.gte]: startDateObject.toDate(),
+          },
+          {
+            [Op.lte]: endDateObject.toDate(),
+          },
+        ],
+      },
+    };
+
+    const humanDatas = await UnitModel.findOne({
+      where: {
+        id: unitId,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "buildingId"],
+      },
+      include: [
+        {
+          model: SensorModel,
+          as: "sensors",
+          required: true,
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "unitId"],
+          },
+          include: [
             {
-              [Op.gte]: startDateObject.toDate(),
-            },
-            {
-              [Op.lte]: endDateObject.toDate(),
+              model: SensorReportTimeModel,
+              as: "timeReports",
+              include: infosIncludable,
+              required: true,
+              where: whereReportTime,
+              attributes: ["createdAt"],
             },
           ],
         },
-      };
+      ],
+    });
 
-      const humanDatas = await SensorModel.findOne({
-        where: {
-          id: sensorId,
-        },
-        attributes: {
-          exclude: ["createdAt", "updatedAt", "unitId"],
-        },
-        include: [
-          {
-            model: SensorReportTimeModel,
-            as: "timeReports",
-            include: infosIncludable,
-            required: true,
-            where: whereReportTime,
-            attributes: ["createdAt"],
-          },
-        ],
-      });
+    const plainUnit = humanDatas?.get({ plain: true });
+    const sensors = (plainUnit as any).sensors;
+    const newSensors = [];
 
-      const plainSensor = humanDatas?.get({ plain: true });
-      const newSensors = [];
-
+    for (let sensor of sensors) {
       let isDelete: boolean = false;
-      const timeReports = (plainSensor as any).timeReports;
+      const timeReports = sensor.timeReports;
       for (let timeReport of timeReports) {
         // 비어 있는 아우터 조인 결과 제거
         Object.keys(timeReport).forEach((key) => {
@@ -854,29 +642,198 @@ ApiRoutes.get(
         }
       }
 
-      res.custom = {
-        status: 200,
-        body: {
-          status: true,
-          query: Object.keys(query).length === 0 ? "none" : query,
-          data: {
-            sensor: plainSensor,
-          },
-        },
-      };
-
-      return next();
-    } catch (err: any) {
-      const statusCode = err.statusCode ? err.statusCode : 500;
-      console.error(err);
-      return res.status(statusCode).json({
-        status: false,
-        query: query,
-        error: {
-          message: err.message,
-        },
-      });
+      if (!isDelete) {
+        newSensors.push(sensor);
+      }
     }
+
+    if (newSensors.length !== 0) {
+      (plainUnit as any).sensors = newSensors;
+    }
+
+    res.custom = {
+      status: 200,
+      body: {
+        status: true,
+        query: Object.keys(query).length === 0 ? "none" : query,
+        data: {
+          unit: plainUnit,
+        },
+      },
+    };
+
+    return next();
+  }
+);
+
+ApiRoutes.get(
+  "/bems-hdms/:buildingId/:unitId/:sensorId",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = <RequestBEMSApi>req.query;
+    const { sensorId } = req.params;
+
+    console.log("\n\n-----query-----");
+    console.log(query);
+
+    const { include, exclude, startDate, endDate } = query;
+
+    // 1. 모델 파싱 (include, exclude query control)
+    // -1. include parsing
+    let infos: InformationModel[] = include
+      ? getModelsByIncludeColumns(include.split(","))
+      : informationModels;
+    // -2. exclude parsing ( include query 존재할 경우 동작하지 않는다. )
+    if (!include) {
+      if (exclude) {
+        infos = getModelsByExcludeColumns(exclude.split(","));
+      }
+    }
+    console.log("\n\n-----setting information model okay-----");
+    console.log(infos);
+
+    // 2. startDate parsing
+    console.log("\n\n-----start date setting-----");
+    let startDateObject: moment.Moment | undefined;
+    if (startDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+      startDateObject = moment(startDate);
+    } else {
+      startDateObject = moment().subtract(7, "day");
+    }
+
+    if (!startDateObject.isValid()) {
+      return next(
+        new ResponseError("startDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    console.log("start date object:", startDateObject);
+
+    // 4. endDate parsing
+    console.log("\n\n-----end date setting-----");
+    let endDateObject: moment.Moment | undefined;
+    if (endDate) {
+      // YYYY-MM-DDThh:mm:ss
+      // 1. 4글자보다 작으면 안됨 ( < 4 error )
+      // 2. 시간 설정 시 T다음에 반드시 값이 있어야함 ( === 11 error)
+      // 3. 시간 초 (ss) 까지 총 19글자 허용 ( > 19 error )
+
+      endDateObject = moment(endDate);
+    } else {
+      endDateObject = moment(startDateObject).add(7, "d");
+    }
+
+    if (!endDateObject.isValid()) {
+      return next(
+        new ResponseError("endDate 가 ISO8601 형식에 맞지 않습니다.", 400)
+      );
+    }
+    if (!endDateObject.isAfter(startDateObject)) {
+      return next(
+        new ResponseError(
+          "endDate는 startDate 보다 작거나 같을 수 없습니다.",
+          400
+        )
+      );
+    }
+    console.log("end date object:", endDateObject);
+
+    // 3. convert to includabletype
+    console.log("\n\n-----infos convert to includabletype-----");
+    const asList = infos.reduce<any>(
+      (acc, cur) => acc.concat(getModelAsByModel(cur)),
+      []
+    );
+    const infosIncludable = infos.reduce<any>(
+      (acc, cur) =>
+        acc.concat({
+          model: cur,
+          as: getModelAsByModel(cur),
+          attributes: ["value"],
+        }),
+      []
+    );
+    console.log(infosIncludable);
+
+    // 4. condition init
+    // reportTime
+    const whereReportTime = {
+      createdAt: {
+        [Op.and]: [
+          {
+            [Op.gte]: startDateObject.toDate(),
+          },
+          {
+            [Op.lte]: endDateObject.toDate(),
+          },
+        ],
+      },
+    };
+
+    const humanDatas = await SensorModel.findOne({
+      where: {
+        id: sensorId,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "unitId"],
+      },
+      include: [
+        {
+          model: SensorReportTimeModel,
+          as: "timeReports",
+          include: infosIncludable,
+          required: true,
+          where: whereReportTime,
+          attributes: ["createdAt"],
+        },
+      ],
+    });
+
+    const plainSensor = humanDatas?.get({ plain: true });
+
+    let isDelete: boolean = false;
+
+    if (plainSensor) {
+      const timeReports = (plainSensor as any).timeReports;
+      if (timeReports) {
+        for (let timeReport of timeReports) {
+          // 비어 있는 아우터 조인 결과 제거
+          Object.keys(timeReport).forEach((key) => {
+            if (timeReport[key] === null) {
+              delete timeReport[key];
+            }
+          });
+
+          let includeCount = 0;
+          Object.keys(timeReport).forEach((key) => {
+            if (asList.includes(key)) {
+              includeCount++;
+              timeReport[key] = timeReport[key].value;
+            }
+          });
+
+          if (includeCount === 0) {
+            isDelete = true;
+            break;
+          }
+        }
+      }
+    }
+
+    res.custom = {
+      status: 200,
+      body: {
+        status: true,
+        query: Object.keys(query).length === 0 ? "none" : query,
+        data: {
+          sensor: plainSensor || null,
+        },
+      },
+    };
+
+    return next();
   }
 );
 

@@ -11,11 +11,12 @@ import { _generateKeyPair } from "./utils/_generateKeyPair";
 import SessionCertRoutes from "./routes/sessionCert";
 import ApiRoutes from "./routes/api";
 import validApiUse from "./routes/middlewares/validApiUse";
+import ResponseErrorHandler from "./routes/error";
 
 dotenv.config();
 
 sequelize
-  .sync({ force: true })
+  .sync({ force: false })
   .then(async () => {
     console.log("[sequelize] synchronizing success :)");
     await ApiApplicationModel.destroy({ where: {} });
@@ -36,6 +37,7 @@ app.use(express.json());
 app.use("/sessionCert", SessionCertRoutes);
 app.use("/api", validApiUse, ApiRoutes, encryptBody);
 app.use(decryptBody, Routes, encryptBody);
+app.use(ResponseErrorHandler);
 
 app.listen(PORT, () => {
   console.log("[express] listen", PORT);

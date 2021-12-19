@@ -9,7 +9,7 @@ export type ApiApplicationAttributes = {
   readonly id: number;
   purpose: string;
   apiKey: string;
-  decryptKey: string;
+  symmetricKey: string;
   status?: ApiApplicationStatus;
   readonly userId: number;
 };

@@ -1,7 +1,7 @@
 export type ApiApplicationType = {
   purpose: string;
   apiKey: string;
-  decryptKey: string;
+  symmetricKey: string;
   userId: number;
 };
 

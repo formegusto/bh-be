@@ -24,7 +24,7 @@ export function bytesToString(bytes: any, type: "ascii" | "unicode"): string {
 }
 
 export function encryptProcess(plainText: string, encryptKey?: string): string {
-  const adminKey = encryptKey || process.env.INDBARIAKEY!;
+  const adminKey = encryptKey || process.env.SELF_SYM_KEY!;
   const aria = new ARIAEngine(256);
   const mk = stringToByte(adminKey, "ascii");
   aria.setKey(mk);
@@ -53,7 +53,7 @@ export function decryptProcess(
   cipherText: string,
   decryptKey?: string
 ): string {
-  const adminKey = decryptKey || process.env.INDBARIAKEY!;
+  const adminKey = decryptKey || process.env.SELF_SYM_KEY!;
   const aria = new ARIAEngine(256);
   const mk = stringToByte(adminKey, "ascii");
   aria.setKey(mk);

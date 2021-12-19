@@ -9,10 +9,10 @@ export type UserAttributes = {
   readonly id: number;
   username: string;
   password: string;
+  name: string;
+  organization: string;
   email: string;
   phone: string;
-  association: string;
-  nickname: string;
   role: UserRole;
 };
 

@@ -1,28 +1,23 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import SessionCertModel from "../../models/sessionCert";
-import { encryptProcess, requestBodyEncrypt } from "../../utils/ARIAUtils";
+import { encryptProcess } from "../../utils/ARIAUtils";
 import EncryptType from "../../utils/EncryptType";
+import ResponseError from "../../utils/ResponseError";
 
-export default async function encryptBody(req: Request, res: Response) {
+export default async function encryptBody(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   let responseEncryptType = req.headers["response-encrypt"] as EncryptType;
 
   if (responseEncryptType && responseEncryptType === EncryptType.PLAIN) {
     const apiKey = req.headers.authorization;
-    if (!apiKey) {
-      return res.status(403).json({
-        status: false,
-        error: {
-          message: "PLAIN 데이터의 권한이 없습니다.",
-        },
-      });
-    } else {
+    if (!apiKey)
+      return next(new ResponseError("PLAIN 데이터의 권한이 없습니다.", 401));
+    else {
       if (apiKey !== process.env.ADMIN_REQUEST_KEY) {
-        return res.status(403).json({
-          status: false,
-          error: {
-            message: "PLAIN 데이터의 권한이 없습니다.",
-          },
-        });
+        return next(new ResponseError("PLAIN 데이터의 권한이 없습니다.", 401));
       }
     }
     if (res.custom)
@@ -39,7 +34,7 @@ export default async function encryptBody(req: Request, res: Response) {
       encryptKey = process.env.COMMUNITY_KEY!;
       break;
     case EncryptType.USER_SELF:
-      encryptKey = req.decryptKey!;
+      encryptKey = req.symmetricKey!;
       break;
     case EncryptType.CERT_COMMUNITY:
       const certId = req.headers["session-cert-id"];

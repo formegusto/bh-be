@@ -32,6 +32,26 @@ const userAttributes: ModelAttributes = {
     type: DataTypes.STRING,
     allowNull: false,
   }, // 해시적용
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    set(val: any) {
+      ariaBeforeInDB(this, val, "name");
+    },
+    get() {
+      return ariaAfterOutDB(this, "name");
+    },
+  },
+  organization: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    set(val: any) {
+      ariaBeforeInDB(this, val, "organization");
+    },
+    get() {
+      return ariaAfterOutDB(this, "organization");
+    },
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -52,27 +72,6 @@ const userAttributes: ModelAttributes = {
       return ariaAfterOutDB(this, "phone");
     },
   },
-  association: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    set(val: any) {
-      ariaBeforeInDB(this, val, "association");
-    },
-    get() {
-      return ariaAfterOutDB(this, "association");
-    },
-  },
-  nickname: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    set(val: any) {
-      ariaBeforeInDB(this, val, "nickname");
-    },
-    get() {
-      return ariaAfterOutDB(this, "nickname");
-    },
-  },
   role: {
     type: DataTypes.ENUM(UserRole.user, UserRole.admin),
     allowNull: false,
@@ -87,10 +86,10 @@ class UserModel
   public readonly id!: number;
   public username!: string;
   public password!: string;
+  public name!: string;
+  public organization!: string;
   public email!: string;
   public phone!: string;
-  public association!: string;
-  public nickname!: string;
   public role!: UserRole;
 
   public readonly createdAt!: Date;

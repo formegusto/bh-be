@@ -95,6 +95,7 @@ UserRoutes.get(
       },
     });
     const plainUser = user?.get({ plain: true });
+    console.log(plainUser);
 
     res.custom = {
       status: 200,

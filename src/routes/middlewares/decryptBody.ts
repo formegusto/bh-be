@@ -6,6 +6,7 @@ import {
   requestBodyDecrypt,
 } from "../../utils/ARIAUtils";
 import SessionCertModel from "../../models/sessionCert";
+import ResponseError from "../../utils/ResponseError";
 
 export default async function decryptBody(
   req: Request,
@@ -17,20 +18,10 @@ export default async function decryptBody(
   if (requestEncryptType && requestEncryptType === EncryptType.PLAIN) {
     const apiKey = req.headers.authorization;
     if (!apiKey) {
-      return res.status(403).json({
-        status: false,
-        error: {
-          message: "PLAIN 데이터의 권한이 없습니다.",
-        },
-      });
+      return next(new ResponseError("PLAIN 데이터의 권한이 없습니다.", 401));
     } else {
       if (apiKey !== process.env.ADMIN_REQUEST_KEY) {
-        return res.status(403).json({
-          status: false,
-          error: {
-            message: "PLAIN 데이터의 권한이 없습니다.",
-          },
-        });
+        return next(new ResponseError("PLAIN 데이터의 권한이 없습니다.", 401));
       }
     }
     return next();

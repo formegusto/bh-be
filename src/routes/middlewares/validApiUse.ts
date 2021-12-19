@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import ApiApplicationModel from "../../models/apiApplication";
 import { ApiApplicationStatus } from "../../models/apiApplication/types";
 import EncryptType from "../../utils/EncryptType";
+import ResponseError from "../../utils/ResponseError";
 
 export default async function validApiUse(
   req: Request,
@@ -18,12 +19,7 @@ export default async function validApiUse(
   }
 
   if (!apiKey) {
-    return res.status(403).json({
-      status: false,
-      error: {
-        message: "권한이 없습니다.",
-      },
-    });
+    return next(new ResponseError("API KEY가 필요한 서비스입니다.", 401));
   }
 
   try {
@@ -36,27 +32,19 @@ export default async function validApiUse(
 
     // 신청서가 존재하지 않을 경우
     if (!application) {
-      return res.status(403).json({
-        status: false,
-        error: {
-          message: "권한이 없습니다.",
-        },
-      });
+      return next(new ResponseError("신청 데이터가 존재하지 않습니다.", 401));
     }
 
     // 신청서가 허가가 안난 상태일 경우
     if (application.status === ApiApplicationStatus.inactive) {
-      return res.status(403).json({
-        status: false,
-        error: {
-          message: "권한이 없습니다.",
-        },
-      });
+      return next(
+        new ResponseError("관리자 승인이 이루어지지 않았습니다.", 401)
+      );
     }
 
     // 사용자 맞춤형 암호화를 위해 다음 라우터에 사용자 암호화 키 전달
     req.headers["response-encrypt"] = EncryptType.USER_SELF;
-    req.decryptKey = application.decryptKey;
+    req.symmetricKey = application.symmetricKey;
     return next();
   } catch (err) {
     console.error(err);

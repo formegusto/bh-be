@@ -14,7 +14,7 @@ import {
   ApiApplicationCreationAttributes,
 } from "./types";
 
-const ariaAttributes = ["purpose", "apiKey", "decryptKey"];
+const ariaAttributes = ["purpose", "apiKey", "symmetricKey"];
 const apiApplicationAttributes: ModelAttributes = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
@@ -42,15 +42,15 @@ const apiApplicationAttributes: ModelAttributes = {
       return ariaAfterOutDB(this, "apiKey");
     },
   },
-  decryptKey: {
+  symmetricKey: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
     set(val: any) {
-      ariaBeforeInDB(this, val, "decryptKey");
+      ariaBeforeInDB(this, val, "symmetricKey");
     },
     get() {
-      return ariaAfterOutDB(this, "decryptKey");
+      return ariaAfterOutDB(this, "symmetricKey");
     },
   },
   status: {
@@ -74,7 +74,7 @@ class ApiApplicationModel
   public readonly id!: number;
   public purpose!: string;
   public apiKey!: string;
-  public decryptKey!: string;
+  public symmetricKey!: string;
   public status!: ApiApplicationStatus;
   public readonly userId!: number;
 

@@ -17,18 +17,18 @@ ApiApplicationRoutes.post(
         (acc) => acc + Math.random(),
         username
       );
-      const decryptKeyInput = Array.from({ length: 10 }).reduce<string>(
+      const symmetricKeyInput = Array.from({ length: 10 }).reduce<string>(
         (acc) => acc + Math.random(),
         username
       );
 
       const apiKey = await bcrypt.hash(apiKeyInput, 10);
-      const decryptKey = await bcrypt.hash(decryptKeyInput, 10);
+      const symmetricKey = await bcrypt.hash(symmetricKeyInput, 10);
 
       const apiApplication: ApiApplicationType = {
         ...body,
         apiKey: apiKey.slice(7, 7 + 32),
-        decryptKey: decryptKey.slice(7, 7 + 32),
+        symmetricKey: symmetricKey.slice(7, 7 + 32),
         userId: id,
       };
 
