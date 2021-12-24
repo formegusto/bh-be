@@ -1,6 +1,11 @@
 import { UserRole } from "../../models/user/types";
 
-export type RequestUserBody = {
+export type RequestSignInBody = {
+  username: string;
+  password: string;
+};
+
+export type RequestSignUpBody = {
   username: string;
   password: string;
   name: string;

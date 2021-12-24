@@ -1,16 +1,72 @@
 import { NextFunction, Request, Response, Router } from "express";
 import UserModel from "../../models/user";
-import { RequestUserBody } from "./types";
+import { RequestSignInBody, RequestSignUpBody } from "./types";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { loginCheck } from "../middlewares/loginCheck";
+import ResponseError from "../../utils/ResponseError";
 
 const UserRoutes = Router();
 
 UserRoutes.post(
-  "/",
+  "/signin",
   async (req: Request, res: Response, next: NextFunction) => {
-    const body = <RequestUserBody>req.body;
+    const body = <RequestSignInBody>req.body;
+
+    try {
+      const user = await UserModel.findOne({
+        where: {
+          username: body.username,
+        },
+      });
+
+      if (user) {
+        const hashCheck = await bcrypt.compare(body.password, user.password);
+
+        if (hashCheck) {
+          const token = await jwt.sign(
+            {
+              id: user.id,
+              username: user.username,
+              role: user.role,
+            },
+            process.env.JWT_SECRET!,
+            {
+              expiresIn: "3h",
+            }
+          );
+
+          res.custom = {
+            status: 200,
+            body: {
+              status: true,
+              token,
+            },
+          };
+
+          return next();
+        } else {
+          return next(new ResponseError("잘못된 로그인 정보입니다.", 401));
+        }
+      } else {
+        return next(new ResponseError("잘못된 로그인 정보입니다.", 401));
+      }
+    } catch (err: any) {
+      console.error(err);
+      return res.status(500).json({
+        status: false,
+        error: {
+          message: "시스템 오류입니다. 관리자에게 문의해주세요.",
+        },
+      });
+    }
+  }
+);
+
+UserRoutes.post(
+  "/signup",
+  async (req: Request, res: Response, next: NextFunction) => {
+    const body = <RequestSignUpBody>req.body;
 
     try {
       const isExist = await UserModel.findOne({
@@ -21,7 +77,11 @@ UserRoutes.post(
 
       if (isExist) {
         const token = await jwt.sign(
-          isExist?.get({ plain: true }),
+          {
+            id: isExist.id,
+            username: isExist.username,
+            rol: isExist.role,
+          },
           process.env.JWT_SECRET!,
           {
             expiresIn: "3h",
@@ -54,7 +114,11 @@ UserRoutes.post(
         });
         if (user) {
           const token = await jwt.sign(
-            user?.get({ plain: true }),
+            {
+              id: user.id,
+              username: user.username,
+              rol: user.role,
+            },
             process.env.JWT_SECRET!,
             {
               expiresIn: "3h",
