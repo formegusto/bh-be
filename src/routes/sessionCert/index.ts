@@ -89,7 +89,7 @@ SessionCertRoutes.post("/symmetricKey", async (req: Request, res: Response) => {
   }
 });
 
-SessionCertRoutes.post(
+SessionCertRoutes.patch(
   "/establish",
   decryptBody,
   async (req: Request, res: Response) => {
