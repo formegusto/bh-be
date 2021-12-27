@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
+import SessionCertModel from "../../models/sessionCert";
 import UserModel from "../../models/user";
+import { decryptProcess } from "../../utils/ARIAUtils";
+import ResponseError from "../../utils/ResponseError";
 import { DecodedUser } from "../user/types";
 
 export async function loginCheck(
@@ -13,32 +16,19 @@ export async function loginCheck(
 
   try {
     if (!token) {
-      return res.status(401).json({
-        status: false,
-        error: {
-          message: "인증이 필요한 서비스입니다.",
-        },
-      });
+      return next(new ResponseError("인증이 필요한 서비스입니다.", 401));
     }
     console.log("token", token);
 
     const { username, role } = <DecodedUser>jwt.verify(token, secret);
+    console.log(username, role);
     const user = await UserModel.findOne({
       where: {
         username,
-        role,
       },
       attributes: ["id", "username", "role"],
     });
-    if (!user) {
-      return res.status(401).json({
-        status: false,
-        error: {
-          message: "잘못된 토큰입니다.",
-        },
-      });
-    }
-
+    if (!user) return next(new ResponseError("잘못된 토큰 입니다.", 401));
     req.loginUser = user.get({ plain: true });
 
     return next();

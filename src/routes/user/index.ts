@@ -80,7 +80,7 @@ UserRoutes.post(
           {
             id: isExist.id,
             username: isExist.username,
-            rol: isExist.role,
+            role: isExist.role,
           },
           process.env.JWT_SECRET!,
           {
@@ -155,20 +155,26 @@ UserRoutes.get(
     const { id } = req.loginUser as any;
     const user = await UserModel.findByPk(id, {
       attributes: {
-        exclude: ["id"],
+        include: ["id", "username", "role"],
       },
     });
-    const plainUser = user?.get({ plain: true });
-    console.log(plainUser);
-
-    res.custom = {
-      status: 200,
-      body: {
-        status: true,
-        user: plainUser,
-      },
-    };
-    return next();
+    if (user) {
+      const { id, username, role } = user.get({ plain: true });
+      res.custom = {
+        status: 200,
+        body: {
+          status: true,
+          user: {
+            id,
+            username,
+            role,
+          },
+        },
+      };
+      return next();
+    } else {
+      return next(new ResponseError("존재하지 않는 정보입니다.", 403));
+    }
   }
 );
 
