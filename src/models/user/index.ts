@@ -103,6 +103,8 @@ class UserModel
   public static associationsConfig() {
     this.hasOne(ApiApplicationModel, {
       sourceKey: "id",
+      foreignKey: "userId",
+      as: "apiApplication",
     });
   }
   public static initConfig(sequelize: Sequelize) {

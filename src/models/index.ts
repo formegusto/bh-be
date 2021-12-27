@@ -44,6 +44,7 @@ SensorReportTimeModel.associationsConfig();
 UserModel.initConfig(sequelize);
 ApiApplicationModel.initConfig(sequelize);
 
+UserModel.associationsConfig();
 ApiApplicationModel.associationsConfig();
 
 export default sequelize;

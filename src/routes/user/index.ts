@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { loginCheck } from "../middlewares/loginCheck";
 import ResponseError from "../../utils/ResponseError";
+import ApiApplicationModel from "../../models/apiApplication";
 
 const UserRoutes = Router();
 
@@ -117,7 +118,7 @@ UserRoutes.post(
             {
               id: user.id,
               username: user.username,
-              rol: user.role,
+              role: user.role,
             },
             process.env.JWT_SECRET!,
             {
@@ -154,21 +155,23 @@ UserRoutes.get(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.loginUser as any;
     const user = await UserModel.findByPk(id, {
-      attributes: {
-        include: ["id", "username", "role"],
-      },
+      attributes: ["id", "username", "role", "organization", "name"],
+      include: [
+        {
+          model: ApiApplicationModel,
+          as: "apiApplication",
+          attributes: ["id", "status", "purpose"],
+        },
+      ],
     });
     if (user) {
-      const { id, username, role } = user.get({ plain: true });
+      const plainUser = user.get({ plain: true });
+      console.log(plainUser);
       res.custom = {
         status: 200,
         body: {
           status: true,
-          user: {
-            id,
-            username,
-            role,
-          },
+          user: plainUser,
         },
       };
       return next();

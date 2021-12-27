@@ -56,10 +56,11 @@ const apiApplicationAttributes: ModelAttributes = {
   status: {
     type: DataTypes.ENUM(
       ApiApplicationStatus.inactive,
+      ApiApplicationStatus.wating,
       ApiApplicationStatus.active
     ),
     allowNull: false,
-    defaultValue: ApiApplicationStatus.inactive,
+    defaultValue: ApiApplicationStatus.wating,
   },
   userId: {
     type: DataTypes.INTEGER.UNSIGNED,
@@ -90,6 +91,7 @@ class ApiApplicationModel
     this.belongsTo(UserModel, {
       targetKey: "id",
       foreignKey: "userId",
+      as: "user",
     });
   }
 
