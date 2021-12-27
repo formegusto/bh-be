@@ -1,9 +1,9 @@
 import { Optional } from "sequelize/dist";
 
 export enum ApiApplicationStatus {
-  inactive = "INACTIVE",
-  wating = "WATING",
-  active = "ACTIVE",
+  INACTIVE = "inactive",
+  WAITING = "waiting",
+  ACTIVE = "active",
 }
 
 export type ApiApplicationAttributes = {

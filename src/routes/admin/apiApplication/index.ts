@@ -18,7 +18,7 @@ ApiApplicationRoutes.patch(
 
     const [_, _2] = await ApiApplicationModel.update(
       {
-        status: ApiApplicationStatus.active,
+        status: ApiApplicationStatus.ACTIVE,
       },
       {
         where: {

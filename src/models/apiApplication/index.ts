@@ -55,12 +55,12 @@ const apiApplicationAttributes: ModelAttributes = {
   },
   status: {
     type: DataTypes.ENUM(
-      ApiApplicationStatus.inactive,
-      ApiApplicationStatus.wating,
-      ApiApplicationStatus.active
+      ApiApplicationStatus.INACTIVE,
+      ApiApplicationStatus.WAITING,
+      ApiApplicationStatus.ACTIVE
     ),
     allowNull: false,
-    defaultValue: ApiApplicationStatus.wating,
+    defaultValue: ApiApplicationStatus.WAITING,
   },
   userId: {
     type: DataTypes.INTEGER.UNSIGNED,
