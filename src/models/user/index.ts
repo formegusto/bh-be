@@ -113,13 +113,15 @@ class UserModel
       modelName: "User",
       hooks: {
         beforeFind: ({ where }) => {
-          Object.keys(where as any).forEach((key) => {
-            if (ariaAttributes.includes(key)) {
-              const plaintText = (where as any)[key];
-              const cipherText = encryptProcess(plaintText);
-              (where as any)[key] = cipherText;
-            }
-          });
+          if (where) {
+            Object.keys(where as any).forEach((key) => {
+              if (ariaAttributes.includes(key)) {
+                const plaintText = (where as any)[key];
+                const cipherText = encryptProcess(plaintText);
+                (where as any)[key] = cipherText;
+              }
+            });
+          }
         },
       },
     });

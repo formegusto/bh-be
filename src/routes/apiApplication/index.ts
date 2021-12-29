@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import bcrypt from "bcrypt";
 import { ApiApplicationType, RequestApiApplication } from "./types";
 import ApiApplicationModel from "../../models/apiApplication";
-import { requestBodyDecrypt, requestBodyEncrypt } from "../../utils/ARIAUtils";
+import ResponseError from "../../utils/ResponseError";
 
 const ApiApplicationRoutes = Router();
 
@@ -10,9 +10,24 @@ ApiApplicationRoutes.post(
   "/apply",
   async (req: Request, res: Response, next: NextFunction) => {
     const body = <RequestApiApplication>req.body;
-    const { id, username } = req.loginUser!;
+    const { id: userId, username } = req.loginUser!;
 
     try {
+      const isAlready = await ApiApplicationModel.findOne({
+        where: {
+          userId,
+        },
+      });
+
+      if (isAlready) {
+        return next(
+          new ResponseError(
+            "이미 API 신청을 진행하셨습니다. 관리자 승인을 기다려주세요.",
+            400
+          )
+        );
+      }
+
       const apiKeyInput = Array.from({ length: 10 }).reduce<string>(
         (acc) => acc + Math.random(),
         username
@@ -29,18 +44,22 @@ ApiApplicationRoutes.post(
         ...body,
         apiKey: apiKey.slice(7, 7 + 32),
         symmetricKey: symmetricKey.slice(7, 7 + 32),
-        userId: id,
+        userId: userId,
       };
 
       const application = await ApiApplicationModel.create({
         ...apiApplication,
       });
-      const plainApplication = application.get({ plain: true });
+      const { id, status, purpose } = application.get({ plain: true });
       res.custom = {
         status: 201,
         body: {
           status: true,
-          application: plainApplication,
+          apiApplication: {
+            id,
+            status,
+            purpose,
+          },
         },
       };
       return next();
