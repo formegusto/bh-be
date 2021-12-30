@@ -65,6 +65,7 @@ UserRoutes.patch(
         res.custom = {
           status: 200,
           body: {
+            status: true,
             success: {
               message: "성공적으로 수정되었습니니다.",
             },

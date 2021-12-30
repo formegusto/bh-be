@@ -36,7 +36,10 @@ export default async function validApiUse(
     }
 
     // 신청서가 허가가 안난 상태일 경우
-    if (application.status === ApiApplicationStatus.INACTIVE) {
+    if (
+      application.status === ApiApplicationStatus.INACTIVE ||
+      application.status === ApiApplicationStatus.WAITING
+    ) {
       return next(
         new ResponseError("관리자 승인이 이루어지지 않았습니다.", 401)
       );

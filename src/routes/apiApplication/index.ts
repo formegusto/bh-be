@@ -37,20 +37,22 @@ ApiApplicationRoutes.post(
         username
       );
 
-      const apiKey = await bcrypt.hash(apiKeyInput, 10);
-      const symmetricKey = await bcrypt.hash(symmetricKeyInput, 10);
+      const newApiKey = await bcrypt.hash(apiKeyInput, 10);
+      const newSymmetricKey = await bcrypt.hash(symmetricKeyInput, 10);
 
       const apiApplication: ApiApplicationType = {
         ...body,
-        apiKey: apiKey.slice(7, 7 + 32),
-        symmetricKey: symmetricKey.slice(7, 7 + 32),
+        apiKey: newApiKey.slice(7, 7 + 32),
+        symmetricKey: newSymmetricKey.slice(7, 7 + 32),
         userId: userId,
       };
 
       const application = await ApiApplicationModel.create({
         ...apiApplication,
       });
-      const { id, status, purpose } = application.get({ plain: true });
+      const { id, status, purpose, apiKey, symmetricKey } = application.get({
+        plain: true,
+      });
       res.custom = {
         status: 201,
         body: {
@@ -59,6 +61,8 @@ ApiApplicationRoutes.post(
             id,
             status,
             purpose,
+            apiKey,
+            symmetricKey,
           },
         },
       };

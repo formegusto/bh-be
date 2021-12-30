@@ -160,7 +160,7 @@ UserRoutes.get(
         {
           model: ApiApplicationModel,
           as: "apiApplication",
-          attributes: ["id", "status", "purpose"],
+          attributes: ["id", "status", "purpose", "apiKey", "symmetricKey"],
         },
       ],
     });

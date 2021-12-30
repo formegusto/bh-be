@@ -101,13 +101,15 @@ class ApiApplicationModel
       modelName: "ApiApplication",
       hooks: {
         beforeFind: ({ where }) => {
-          Object.keys(where as any).forEach((key) => {
-            if (ariaAttributes.includes(key)) {
-              const plainText = (where as any)[key];
-              const cipherText = encryptProcess(plainText);
-              (where as any)[key] = cipherText;
-            }
-          });
+          if (where) {
+            Object.keys(where as any).forEach((key) => {
+              if (ariaAttributes.includes(key)) {
+                const plainText = (where as any)[key];
+                const cipherText = encryptProcess(plainText);
+                (where as any)[key] = cipherText;
+              }
+            });
+          }
         },
       },
     });

@@ -16,7 +16,10 @@ import ResponseErrorHandler from "./routes/error";
 dotenv.config();
 
 sequelize
-  .sync({ force: false })
+  .sync({
+    // force: false
+    alter: true,
+  })
   .then(async () => {
     console.log("[sequelize] synchronizing success :)");
     await ApiApplicationModel.destroy({ where: {} });
