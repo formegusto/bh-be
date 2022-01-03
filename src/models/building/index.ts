@@ -17,6 +17,12 @@ const buildingAttributes: ModelAttributes = {
     unique: true,
     autoIncrement: true,
   },
+  image: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: true,
+    defaultValue: null,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -48,6 +54,7 @@ class BuildingModel
   implements BuildingAttributes
 {
   public readonly id!: number;
+  public image!: string;
   public name!: string;
 
   public readonly createdAt!: Date;
