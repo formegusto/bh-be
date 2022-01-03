@@ -22,6 +22,13 @@ const buildingAttributes: ModelAttributes = {
     unique: true,
     allowNull: true,
     defaultValue: null,
+    set(val: any) {
+      const cipherValue = encryptProcess(val.toString());
+      this.setDataValue("image", cipherValue);
+    },
+    get() {
+      return ariaAfterOutDB(this, "image");
+    },
   },
   name: {
     type: DataTypes.STRING,

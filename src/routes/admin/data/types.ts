@@ -17,3 +17,10 @@ export const TARGET_MODEL: { [key: string]: any } = {
   [TARGET.SENSOR]: SensorModel,
   [TARGET.REPORT]: SensorReportTimeModel,
 };
+
+export type POST_OR_PATCH_BODY = {
+  name: string;
+  image?: string;
+  buildingId?: string;
+  unitId?: string;
+};

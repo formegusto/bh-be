@@ -12,13 +12,14 @@ import SessionCertRoutes from "./routes/sessionCert";
 import ApiRoutes from "./routes/api";
 import validApiUse from "./routes/middlewares/validApiUse";
 import ResponseErrorHandler from "./routes/error";
+import morgan from "morgan";
 
 dotenv.config();
 
 sequelize
   .sync({
-    // force: false
-    alter: true,
+    force: true,
+    // alter: true,
   })
   .then(async () => {
     console.log("[sequelize] synchronizing success :)");
@@ -33,9 +34,11 @@ const PORT = process.env.PORT || 80;
 const app: express.Application = express();
 
 app.use(cors());
+app.use(morgan("dev"));
 
 app.use(express.text());
 app.use(express.json());
+app.use("/static", express.static("public"));
 
 app.use("/sessionCert", SessionCertRoutes);
 app.use("/api", validApiUse, ApiRoutes, encryptBody);

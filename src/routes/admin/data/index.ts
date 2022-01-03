@@ -1,10 +1,27 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { Model, ModelStatic } from "sequelize/dist";
 import ResponseError from "../../../utils/ResponseError";
 import { informationMap } from "../../api/commonDatas";
-import { TARGET, TARGET_MODEL } from "./types";
+import { POST_OR_PATCH_BODY, TARGET, TARGET_MODEL } from "./types";
+import multer from "multer";
+import path from "path";
+import BuildingModel from "../../../models/building";
+import UnitModel from "../../../models/unit";
 
 const DataRoutes = Router();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/building");
+  },
+  filename: (req, file, cb) => {
+    const { name } = <POST_OR_PATCH_BODY>req.body;
+
+    cb(null, `${name}-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+const upload = multer({
+  storage,
+});
+const singleFile = upload.single("image");
 
 /*
     target : building, ENUM TARGET
@@ -107,7 +124,84 @@ DataRoutes.get(
   }
 );
 
-DataRoutes.post("/:target/:id", (req: Request, res: Response) => {});
+DataRoutes.post(
+  "/:target",
+  singleFile,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { target } = req.params;
+
+      const model = TARGET_MODEL[target];
+      let body = <POST_OR_PATCH_BODY>req.body;
+      const file = req.file;
+
+      const isExist = await model.findOne({
+        where: body,
+      });
+      if (isExist)
+        return next(
+          new ResponseError(`이미 같은 이름의 ${target}이(가) 존재합니다.`, 400)
+        );
+
+      switch (target) {
+        case TARGET.UNIT:
+          const buildingExist = await BuildingModel.findOne({
+            where: {
+              id: body.buildingId,
+            },
+          });
+          if (!buildingExist)
+            return next(
+              new ResponseError("존재하지 않는 '건물'의 번호입니다.", 400)
+            );
+          break;
+        case TARGET.SENSOR:
+          const unitExist = await UnitModel.findOne({
+            where: {
+              id: body.unitId,
+            },
+          });
+          if (!unitExist)
+            return next(
+              new ResponseError("존재하지 않는 '호'의 번호입니다.", 400)
+            );
+          break;
+        case TARGET.BUILDING:
+          if (file) {
+            const serverUri = process.env.SERVER_URI!;
+            const staticPath = process.env.FILE_PATH_ROOT!;
+            const image = path.join(
+              serverUri,
+              staticPath,
+              target,
+              file.filename
+            );
+
+            body["image"] = image;
+          }
+          break;
+      }
+
+      const createData = await model.create(body);
+      res.custom = {
+        status: 201,
+        body: {
+          status: true,
+          target,
+          createData,
+        },
+      };
+
+      return next();
+    } catch (err) {
+      console.error(err);
+
+      return next(
+        new ResponseError("시스템 오류 입니다. 관리자에게 문의해주세요.", 500)
+      );
+    }
+  }
+);
 DataRoutes.patch("/:target/:id", (req: Request, res: Response) => {});
 DataRoutes.delete("/:target/:id", (req: Request, res: Response) => {});
 
