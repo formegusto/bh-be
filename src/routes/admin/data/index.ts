@@ -6,6 +6,7 @@ import multer from "multer";
 import path from "path";
 import BuildingModel from "../../../models/building";
 import UnitModel from "../../../models/unit";
+import fs from "fs";
 
 const DataRoutes = Router();
 const storage = multer.diskStorage({
@@ -13,9 +14,7 @@ const storage = multer.diskStorage({
     cb(null, "public/building");
   },
   filename: (req, file, cb) => {
-    const { name } = <POST_OR_PATCH_BODY>req.body;
-
-    cb(null, `${name}-${Date.now()}${path.extname(file.originalname)}`);
+    cb(null, `building-${Date.now()}${path.extname(file.originalname)}`);
   },
 });
 const upload = multer({
@@ -168,16 +167,10 @@ DataRoutes.post(
           break;
         case TARGET.BUILDING:
           if (file) {
-            const serverUri = process.env.SERVER_URI!;
             const staticPath = process.env.FILE_PATH_ROOT!;
-            const image = path.join(
-              serverUri,
-              staticPath,
-              target,
-              file.filename
-            );
+            const image = path.join(staticPath, target, file.filename);
 
-            body["image"] = image;
+            body["image"] = "/" + image;
           }
           break;
       }
@@ -202,7 +195,90 @@ DataRoutes.post(
     }
   }
 );
-DataRoutes.patch("/:target/:id", (req: Request, res: Response) => {});
+
+DataRoutes.patch(
+  "/:target/:id",
+  singleFile,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { target, id } = req.params;
+      const model = TARGET_MODEL[target];
+      const body = <POST_OR_PATCH_BODY>req.body;
+      const file = req.file;
+
+      const isExist = await model.findOne({
+        where: {
+          id,
+        },
+      });
+      if (!isExist)
+        return next(new ResponseError(`존재하지 않는 ${target} 입니다.`, 400));
+
+      switch (target) {
+        case TARGET.SENSOR:
+        case TARGET.UNIT:
+          if (body.unitId) delete body.unitId;
+          if (body.buildingId) delete body.buildingId;
+          break;
+        case TARGET.BUILDING:
+          if (file) {
+            // 파일이있으면 기존 파일은 날리고,
+            // 새로 들어온 친구를 DB에 넣어줘야 함.
+            const { image } = isExist;
+
+            if (image) {
+              try {
+                const absPath = path.join(
+                  process.env.PWD!,
+                  image.replace("/static", process.env.PUBLIC_PATH!)
+                );
+                fs.readFileSync(absPath);
+
+                fs.unlinkSync(absPath);
+              } catch (err) {
+                console.log("파일 없나봄 걍 진행하셈");
+              }
+
+              const staticPath = process.env.FILE_PATH_ROOT!;
+              body.image = "/" + path.join(staticPath, target, file.filename);
+            }
+          }
+
+          break;
+      }
+
+      await model.update(body, {
+        where: {
+          id,
+        },
+      });
+      const updateData = await model.findOne({
+        where: {
+          id,
+        },
+      });
+
+      res.custom = {
+        status: 200,
+
+        body: {
+          status: true,
+          target,
+          updateData,
+        },
+      };
+
+      return next();
+    } catch (err) {
+      console.error(err);
+
+      return next(
+        new ResponseError("시스템 오류 입니다. 관리자에게 문의해주세요.", 500)
+      );
+    }
+  }
+);
+
 DataRoutes.delete("/:target/:id", (req: Request, res: Response) => {});
 
 export default DataRoutes;

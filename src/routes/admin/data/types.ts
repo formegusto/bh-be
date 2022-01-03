@@ -19,7 +19,7 @@ export const TARGET_MODEL: { [key: string]: any } = {
 };
 
 export type POST_OR_PATCH_BODY = {
-  name: string;
+  name?: string;
   image?: string;
   buildingId?: string;
   unitId?: string;
