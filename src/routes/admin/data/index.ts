@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import ResponseError from "../../../utils/ResponseError";
-import { informationMap } from "../../api/commonDatas";
+import { includeColums, informationMap } from "../../api/commonDatas";
 import { POST_OR_PATCH_BODY, TARGET, TARGET_MODEL } from "./types";
 import multer from "multer";
 import path from "path";
@@ -74,6 +74,7 @@ DataRoutes.get(
 
     const model = TARGET_MODEL[target];
     const where: { [key: string]: any } = {};
+    const option: { [key: string]: any } = {};
 
     let include;
 
@@ -91,12 +92,16 @@ DataRoutes.get(
           as: k,
           attributes: ["value"],
         }));
+        option.order = [["createdAt", "DESC"]];
+        option.attributes = ["createdAt"];
+
         break;
     }
 
     const data = await model.findAll({
       where,
       include,
+      ...option,
     });
     const plainData = data.map((d: any) => ({
       ...d.get({ plain: true }),
@@ -104,8 +109,11 @@ DataRoutes.get(
 
     if (target === TARGET.REPORT) {
       plainData.forEach((p: any) => {
-        Object.keys(p).forEach((k) => {
-          if (p[k] === null) delete p[k];
+        Object.keys(p).forEach((k: any) => {
+          if (includeColums.includes(k)) {
+            if (!p[k]) delete p[k];
+            else p[k] = p[k]["value"];
+          }
         });
       });
     }
@@ -238,10 +246,10 @@ DataRoutes.patch(
               } catch (err) {
                 console.log("파일 없나봄 걍 진행하셈");
               }
-
-              const staticPath = process.env.FILE_PATH_ROOT!;
-              body.image = "/" + path.join(staticPath, target, file.filename);
             }
+
+            const staticPath = process.env.FILE_PATH_ROOT!;
+            body.image = "/" + path.join(staticPath, target, file.filename);
           }
 
           break;
