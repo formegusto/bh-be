@@ -8,8 +8,8 @@ import UserRoutes from "./user";
 
 const Routes = Router();
 
-Routes.use("/admin", adminCheck, AdminRoutes);
-// Routes.use("/admin", loginCheck, AdminRoutes);
+// Routes.use("/admin", adminCheck, AdminRoutes);
+Routes.use("/admin", loginCheck, AdminRoutes);
 Routes.use("/user", UserRoutes);
 Routes.use("/apiService", loginCheck, ApiApplicationRoutes);
 Routes.use("/info", InfoRoutes);

@@ -7,6 +7,8 @@ import path from "path";
 import BuildingModel from "../../../models/building";
 import UnitModel from "../../../models/unit";
 import fs from "fs";
+import SessionCertModel from "../../../models/sessionCert";
+import { decryptProcess } from "../../../utils/ARIAUtils";
 
 const DataRoutes = Router();
 const storage = multer.diskStorage({
@@ -135,6 +137,14 @@ DataRoutes.post(
   "/:target",
   singleFile,
   async (req: Request, res: Response, next: NextFunction) => {
+    if (req.isRequiredDecrypt) {
+      const certId = req.headers["session-cert-id"];
+      const sessionCert = await SessionCertModel.findByPk(certId as any);
+      const decryptKey = sessionCert?.symmetricKey;
+
+      req.body.name = decryptProcess(req.body.name, decryptKey);
+    }
+
     try {
       const { target } = req.params;
 

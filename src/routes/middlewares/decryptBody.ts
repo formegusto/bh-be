@@ -45,6 +45,11 @@ export default async function decryptBody(
 
   if (req.body && req.body !== "") {
     if (typeof req.body === "object" && Object.keys(req.body).length === 0) {
+      let contentType = req.headers["content-type"];
+
+      if (contentType && contentType.includes("multipart/form-data"))
+        req.isRequiredDecrypt = true;
+
       return next();
     }
     // 복호화

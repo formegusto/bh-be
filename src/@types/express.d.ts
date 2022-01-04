@@ -6,6 +6,7 @@ declare namespace Express {
       role: string;
     };
     symmetricKey?: string;
+    isRequiredDecrypt?: boolean;
   }
   export interface Response {
     exclude?: string[];

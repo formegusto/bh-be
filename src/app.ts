@@ -35,7 +35,6 @@ const app: express.Application = express();
 
 app.use(cors());
 app.use(morgan("dev"));
-
 app.use(express.text());
 app.use(express.json());
 app.use("/static", express.static("public"));
