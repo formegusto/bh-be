@@ -218,6 +218,17 @@ DataRoutes.patch(
   "/:target/:id",
   singleFile,
   async (req: Request, res: Response, next: NextFunction) => {
+    if (req.isRequiredDecrypt) {
+      console.log(req.body);
+      const certId = req.headers["session-cert-id"];
+      const sessionCert = await SessionCertModel.findByPk(certId as any);
+      const decryptKey = sessionCert?.symmetricKey;
+
+      console.log(decryptKey);
+      req.body.name = decryptProcess(req.body.name, decryptKey);
+      console.log(req.body);
+    }
+
     try {
       const { target, id } = req.params;
       const model = TARGET_MODEL[target];

@@ -169,7 +169,7 @@ ApiRoutes.get(
       // raw: true,
       // nest: true,
       attributes: {
-        exclude: ["createdAt", "updatedAt"],
+        exclude: ["createdAt", "updatedAt", "image"],
       },
       include: [
         {
@@ -382,7 +382,7 @@ ApiRoutes.get(
         id: buildingId,
       },
       attributes: {
-        exclude: ["createdAt", "updatedAt"],
+        exclude: ["createdAt", "updatedAt", "image"],
       },
       include: [
         {

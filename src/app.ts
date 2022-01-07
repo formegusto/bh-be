@@ -19,7 +19,7 @@ dotenv.config();
 sequelize
   .sync({
     // force: true,
-    alter: true,
+    // alter: true,
   })
   .then(async () => {
     console.log("[sequelize] synchronizing success :)");
