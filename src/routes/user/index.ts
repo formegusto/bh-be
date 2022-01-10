@@ -9,6 +9,40 @@ import ApiApplicationModel from "../../models/apiApplication";
 
 const UserRoutes = Router();
 
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *   Login:
+ *    type: object
+ *    properties:
+ *     username:
+ *      type: string
+ *     password:
+ *      type: string
+ */
+
+/**
+ * @swagger
+ * /user/signin:
+ *  post:
+ *   tags: [
+ *    "user"
+ *   ]
+ *   summary: "로그인"
+ *   description: "로그인에 사용되는 API 입니다."
+ *
+ *   requestBody:
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       $ref: "#components/schemas/Login"
+ *
+ *   responses:
+ *    '400':
+ *      description: Bad Request
+ */
 UserRoutes.post(
   "/signin",
   async (req: Request, res: Response, next: NextFunction) => {
