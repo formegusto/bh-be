@@ -10,6 +10,7 @@ BEMSHDMSRoutes.post(
   "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const body = <HumanDataBody>req.body;
+    console.log(body);
 
     const [building, buildingResult] = await BuildingModel.findCreateFind({
       where: {

@@ -137,7 +137,7 @@ DataRoutes.post(
   "/:target",
   singleFile,
   async (req: Request, res: Response, next: NextFunction) => {
-    if (req.isRequiredDecrypt) {
+    if (req.isRequiredDecrypt && req.body.name) {
       const certId = req.headers["session-cert-id"];
       const sessionCert = await SessionCertModel.findByPk(certId as any);
       const decryptKey = sessionCert?.symmetricKey;
@@ -218,7 +218,7 @@ DataRoutes.patch(
   "/:target/:id",
   singleFile,
   async (req: Request, res: Response, next: NextFunction) => {
-    if (req.isRequiredDecrypt) {
+    if (req.isRequiredDecrypt && req.body.name) {
       console.log(req.body);
       const certId = req.headers["session-cert-id"];
       const sessionCert = await SessionCertModel.findByPk(certId as any);
