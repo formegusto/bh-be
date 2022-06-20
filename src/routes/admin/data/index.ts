@@ -225,7 +225,9 @@ DataRoutes.patch(
       const decryptKey = sessionCert?.symmetricKey;
 
       console.log(decryptKey);
-      req.body.name = decryptProcess(req.body.name, decryptKey);
+      if(req.body.name) {
+        req.body.name = decryptProcess(req.body.name, decryptKey);
+      }
       console.log(req.body);
     }
 
@@ -270,7 +272,8 @@ DataRoutes.patch(
             }
 
             const staticPath = process.env.FILE_PATH_ROOT!;
-            body.image = "/" + path.join(staticPath, target, file.filename);
+            body.image = "/" + [staticPath, target, file.filename].join("/");
+            console.log(body);
           }
 
           break;

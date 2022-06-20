@@ -6,8 +6,8 @@
   "author": "formegusto <formegusto@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "tsc && node dist/app",
-    "start-nodemon": "nodemon --watch src -e ts --exec 'tsc && node dist/app'",
+    "start": "npx tsc && node dist/app",
+    "start-nodemon": "nodemon --watch src -e ts --exec 'npx tsc && node dist/app'",
     "start-server": "tsc && pm2 start dist/app.js --name bemshuman"
   },
   "devDependencies": {
